@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Forge</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <nav id="top-nav">
+      <div class="nav-logo">AI<span>FORGE</span></div>
+      <div class="nav-actions">
+        <button id="btn-builder" class="nav-btn">⌘ Prompt Lab</button>
+        <button id="btn-theme" class="nav-btn icon-btn" aria-label="Cambiar tema">☾</button>
+      </div>
+    </nav>
+
+    <div id="search-bar">
+      <input type="text" id="search" placeholder="Buscar temas, tags..." autocomplete="off" spellcheck="false">
+    </div>
+
+    <div id="category-bar"></div>
+
+    <main id="main">
+      <header id="main-header">
+        <div class="header-left">
+          <h1 id="current-category-title"></h1>
+          <p id="category-desc"></p>
+        </div>
+      </header>
+      <div id="content-area"></div>
+    </main>
+
+  </div>
+
+  <div id="modal-overlay" class="hidden" role="dialog" aria-modal="true">
+    <div id="modal">
+      <button id="modal-close" aria-label="Cerrar">✕ cerrar</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/prompt-builder.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
