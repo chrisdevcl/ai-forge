@@ -504,7 +504,8 @@ body {
   overflow: hidden;
 }
 
-/* Tabs — visibles siempre, controladas por JS en narrow mode */
+/* Tabs — solo visibles en narrow */
+#prompt-builder:not(.narrow) .builder-tabs { display: none; }
 .builder-tabs {
   display: flex;
   gap: 0;

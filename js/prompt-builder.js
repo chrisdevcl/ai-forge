@@ -1,6 +1,34 @@
 /* ── prompt-builder.js ───────────────────────────────────── */
 
 const TEMPLATES = {
+  'Construir app': {
+    role: 'Eres un arquitecto de software senior con experiencia en producto, UX y desarrollo full-stack. Priorizas la simplicidad, la mantenibilidad y las buenas prácticas por encima de la complejidad técnica innecesaria.',
+    context: 'Quiero construir una aplicación. Antes de escribir cualquier código, necesito un análisis completo para asegurarme de que lo que pido tiene sentido y está bien definido.',
+    task: `FASE 1 — ANÁLISIS (haz esto primero, no escribas código aún):
+1. Reformula en tus propias palabras lo que entiendes que quiero construir.
+2. Identifica ambigüedades o decisiones no tomadas que bloquearían el desarrollo.
+3. Propón la arquitectura más simple que resuelva el problema (no la más impresionante).
+4. Lista las tecnologías recomendadas con justificación breve para cada una.
+5. Desglosa el trabajo en fases ordenadas por valor entregado.
+6. Señala los riesgos técnicos principales y cómo mitigarlos.
+
+Espera mi confirmación antes de continuar.
+
+FASE 2 — DESARROLLO (solo tras confirmar el análisis):
+Implementa siguiendo estas prácticas obligatorias:
+- Código limpio y autoexplicativo, sin comentarios redundantes
+- Separación clara de responsabilidades (una función, una tarea)
+- Manejo explícito de errores en cada punto de fallo
+- Variables y funciones con nombres descriptivos en inglés
+- Sin dependencias innecesarias: si algo se puede hacer con la plataforma, hazlo sin librería
+- Estructura de archivos predecible y escalable desde el día uno`,
+    format: 'structured',
+    tone: 'technical',
+    restrictions: 'No asumas detalles no especificados: pregunta. No generes código en la Fase 1. No uses patrones over-engineered para un MVP. Si algo que pido es una mala práctica, dímelo antes de implementarlo.',
+    examples: '',
+    cot: true,
+    selfcheck: true,
+  },
   'Análisis de documento': {
     role: 'Eres un analista experto en síntesis de información técnica y de negocio.',
     context: 'Tengo un documento que necesito analizar en profundidad.',
