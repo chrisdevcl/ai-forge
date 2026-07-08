@@ -25,12 +25,14 @@
     </div>
 
     <div id="category-bar"></div>
+    <div id="level-bar"></div>
 
     <main id="main">
       <header id="main-header">
         <div class="header-left">
           <h1 id="current-category-title"></h1>
           <p id="category-desc"></p>
+          <div id="ruta-progress" class="hidden"><div id="ruta-progress-fill"></div></div>
         </div>
       </header>
       <div id="content-area"></div>
@@ -40,11 +42,16 @@
 
   <div id="modal-overlay" class="hidden" role="dialog" aria-modal="true">
     <div id="modal">
-      <button id="modal-close" aria-label="Cerrar">✕ cerrar</button>
       <div id="modal-content"></div>
+      <!-- Flotantes: no ocupan espacio en el flujo, se superponen al contenido -->
+      <div id="modal-actions-bar"></div>
+      <div id="modal-nav-bar"></div>
     </div>
   </div>
 
+  <!-- IndexedDB wrapper (idb v8 UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/idb@8/build/umd.js"></script>
+  <script src="js/storage.js"></script>
   <script src="js/data.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/prompt-builder.js"></script>

@@ -22,97 +22,129 @@ Implementa siguiendo estas prácticas obligatorias:
 - Variables y funciones con nombres descriptivos en inglés
 - Sin dependencias innecesarias: si algo se puede hacer con la plataforma, hazlo sin librería
 - Estructura de archivos predecible y escalable desde el día uno`,
-    format: 'structured',
-    tone: 'technical',
+    format: 'structured', tone: 'technical',
     restrictions: 'No asumas detalles no especificados: pregunta. No generes código en la Fase 1. No uses patrones over-engineered para un MVP. Si algo que pido es una mala práctica, dímelo antes de implementarlo.',
-    examples: '',
-    cot: true,
-    selfcheck: true,
+    examples: '', cot: true, selfcheck: true,
   },
   'Análisis de documento': {
     role: 'Eres un analista experto en síntesis de información técnica y de negocio.',
     context: 'Tengo un documento que necesito analizar en profundidad.',
     task: 'Analiza el documento adjunto. Identifica los puntos clave, argumentos principales, posibles inconsistencias y conclusiones relevantes.',
-    format: 'structured',
-    tone: 'professional',
+    format: 'structured', tone: 'professional',
     restrictions: 'No inventes información que no esté en el documento. Si algo no está claro, indícalo explícitamente con "no queda claro en el documento".',
-    examples: '',
-    cot: true,
-    selfcheck: true,
+    examples: '', cot: true, selfcheck: true,
   },
   'Code review': {
     role: 'Eres un senior engineer con experiencia en clean code, performance y seguridad.',
     context: 'Estoy haciendo una revisión de código antes de mergear a main.',
     task: 'Revisa el siguiente código. Identifica bugs, problemas de performance, vulnerabilidades de seguridad y oportunidades de mejora de legibilidad.',
-    format: 'structured',
-    tone: 'technical',
+    format: 'structured', tone: 'technical',
     restrictions: 'Sé específico: menciona línea o sección exacta. Diferencia explícitamente entre "debe cambiar" y "podría mejorar".',
-    examples: '',
-    cot: false,
-    selfcheck: true,
+    examples: '', cot: false, selfcheck: true,
   },
   'Debugging': {
     role: 'Eres un experto en debugging sistemático.',
     context: 'Tengo un bug que no logro reproducir de forma consistente.',
     task: 'Ayúdame a diagnosticar el problema. Analiza el error, propón hipótesis ordenadas por probabilidad y sugiere pasos concretos de verificación para cada una.',
-    format: 'steps',
-    tone: 'technical',
+    format: 'steps', tone: 'technical',
     restrictions: 'No asumas la causa sin evidencia. Cada hipótesis debe tener un test concreto para validarla o descartarla.',
-    examples: '',
-    cot: true,
-    selfcheck: false,
+    examples: '', cot: true, selfcheck: false,
   },
   'Brainstorming': {
     role: 'Eres un facilitador creativo con pensamiento lateral.',
     context: 'Necesito generar ideas sin filtro inicial.',
     task: 'Genera ideas diversas y no obvias sobre el tema. Incluye tanto opciones conservadoras como ideas disruptivas.',
-    format: 'list',
-    tone: 'creative',
+    format: 'list', tone: 'creative',
     restrictions: 'Evita ideas genéricas o de relleno. Prefiero 5 ideas genuinamente diferentes a 20 variaciones del mismo concepto.',
-    examples: '',
-    cot: false,
-    selfcheck: false,
+    examples: '', cot: false, selfcheck: false,
   },
   'Explicación técnica': {
     role: 'Eres un docente técnico que explica conceptos complejos con claridad y sin condescendencia.',
     context: 'Necesito entender un concepto técnico para poder aplicarlo.',
     task: 'Explica el concepto de forma progresiva: definición precisa, mecanismo interno, casos de uso reales y errores comunes al usarlo.',
-    format: 'structured',
-    tone: 'educational',
+    format: 'structured', tone: 'educational',
     restrictions: 'No uses analogías infantiles. El lector tiene experiencia técnica general aunque no conozca este tema específico.',
-    examples: '',
-    cot: false,
-    selfcheck: true,
+    examples: '', cot: false, selfcheck: true,
   },
 };
 
 const FORMAT_OPTIONS = [
-  { value: '',           label: 'Libre',                   instruction: '' },
-  { value: 'structured', label: 'Secciones',               instruction: 'Usa secciones claramente delimitadas con headers Markdown (##). Cada sección debe tener un título descriptivo. No mezcles contenido de distintas secciones.' },
-  { value: 'steps',      label: 'Paso a paso',             instruction: 'Responde con pasos numerados secuencialmente. Cada paso debe ser una acción concreta y verificable. No combines múltiples acciones en un mismo paso.' },
-  { value: 'list',       label: 'Lista de puntos',         instruction: 'Usa listas con viñetas. Cada punto debe ser independiente y autocontenido. Evita repetición entre puntos.' },
-  { value: 'json',       label: 'JSON',                    instruction: 'Responde ÚNICAMENTE con JSON válido. Sin texto antes ni después. Sin backticks ni bloques de código. El JSON debe ser parseable directamente.' },
-  { value: 'markdown',   label: 'Markdown',                instruction: 'Formatea usando Markdown completo: headers (##, ###), bold (**), listas, y bloques de código (```) donde corresponda.' },
+  { value: '',           label: 'Libre',         instruction: '' },
+  { value: 'structured', label: 'Secciones',      instruction: 'Usa secciones claramente delimitadas con headers Markdown (##). Cada sección debe tener un título descriptivo. No mezcles contenido de distintas secciones.' },
+  { value: 'steps',      label: 'Paso a paso',    instruction: 'Responde con pasos numerados secuencialmente. Cada paso debe ser una acción concreta y verificable. No combines múltiples acciones en un mismo paso.' },
+  { value: 'list',       label: 'Lista',          instruction: 'Usa listas con viñetas. Cada punto debe ser independiente y autocontenido. Evita repetición entre puntos.' },
+  { value: 'json',       label: 'JSON',           instruction: 'Responde ÚNICAMENTE con JSON válido. Sin texto antes ni después. Sin backticks ni bloques de código. El JSON debe ser parseable directamente.' },
+  { value: 'markdown',   label: 'Markdown',       instruction: 'Formatea usando Markdown completo: headers (##, ###), bold (**), listas, y bloques de código (```) donde corresponda.' },
 ];
 
 const TONE_OPTIONS = [
-  { value: '',             label: 'Neutral',                 instruction: '' },
-  { value: 'professional', label: 'Profesional',             instruction: 'Tono profesional y formal. Apropiado para presentar a stakeholders. Evita coloquialismos.' },
-  { value: 'technical',    label: 'Técnico',                 instruction: 'Tono técnico y directo. Asume que el lector tiene experiencia en el dominio. Sin simplificaciones innecesarias.' },
-  { value: 'educational',  label: 'Educativo',               instruction: 'Tono pedagógico y progresivo. Define los términos cuando los introduzcas por primera vez.' },
-  { value: 'creative',     label: 'Creativo',                instruction: 'Tono exploratorio y abierto. Prioriza ideas no obvias sobre las predecibles.' },
-  { value: 'concise',      label: 'Conciso',                 instruction: 'Respuestas directas y breves. Sin preambles, rodeos ni repeticiones. Máxima información por token.' },
+  { value: '',             label: 'Neutral',       instruction: '' },
+  { value: 'professional', label: 'Profesional',   instruction: 'Tono profesional y formal. Apropiado para presentar a stakeholders. Evita coloquialismos.' },
+  { value: 'technical',    label: 'Técnico',        instruction: 'Tono técnico y directo. Asume que el lector tiene experiencia en el dominio. Sin simplificaciones innecesarias.' },
+  { value: 'educational',  label: 'Educativo',      instruction: 'Tono pedagógico y progresivo. Define los términos cuando los introduzcas por primera vez.' },
+  { value: 'creative',     label: 'Creativo',       instruction: 'Tono exploratorio y abierto. Prioriza ideas no obvias sobre las predecibles.' },
+  { value: 'concise',      label: 'Conciso',        instruction: 'Respuestas directas y breves. Sin preambles, rodeos ni repeticiones. Máxima información por token.' },
 ];
 
 const MODEL_OPTIONS = [
-  { value: 'claude-opus-4',   label: 'Claude Opus 4' },
-  { value: 'claude-sonnet-4', label: 'Claude Sonnet 4' },
-  { value: 'claude-haiku',    label: 'Claude Haiku' },
-  { value: 'gpt-4o',          label: 'GPT-4o' },
-  { value: 'gpt-4o-mini',     label: 'GPT-4o mini' },
-  { value: 'gemini-2.5-pro',  label: 'Gemini 2.5 Pro' },
-  { value: 'deepseek-r1',     label: 'DeepSeek R1' },
+  { value: 'claude-opus-4',   label: 'Claude Opus 4',   openUrl: 'https://claude.ai/new' },
+  { value: 'claude-sonnet-4', label: 'Claude Sonnet 4', openUrl: 'https://claude.ai/new' },
+  { value: 'claude-haiku',    label: 'Claude Haiku',    openUrl: 'https://claude.ai/new' },
+  { value: 'gpt-4o',          label: 'GPT-4o',          openUrl: null },
+  { value: 'gpt-4o-mini',     label: 'GPT-4o mini',     openUrl: null },
+  { value: 'gemini-2.5-pro',  label: 'Gemini 2.5 Pro',  openUrl: null },
+  { value: 'deepseek-r1',     label: 'DeepSeek R1',     openUrl: null },
 ];
+
+// ── Builder state helpers ─────────────────────────────────
+
+function saveBuilderState() {
+  if (typeof state === 'undefined') return;
+  state.builder = {
+    role:         getVal('b-role'),
+    context:      getVal('b-context'),
+    task:         getVal('b-task'),
+    restrictions: getVal('b-restrictions'),
+    examples:     getVal('b-examples'),
+    format:       getVal('b-format'),
+    tone:         getVal('b-tone'),
+    model:        getVal('b-model'),
+    cot:          getVal('b-cot'),
+    selfcheck:    getVal('b-selfcheck'),
+  };
+}
+
+function restoreBuilderFields() {
+  if (typeof state === 'undefined' || !state.builder) return;
+  const b = state.builder;
+  const setF = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!val;
+    else el.value = val || '';
+  };
+  setF('b-role',         b.role);
+  setF('b-context',      b.context);
+  setF('b-task',         b.task);
+  setF('b-restrictions', b.restrictions);
+  setF('b-examples',     b.examples);
+  setF('b-format',       b.format);
+  setF('b-tone',         b.tone);
+  setF('b-model',        b.model);
+  setF('b-cot',          b.cot);
+  setF('b-selfcheck',    b.selfcheck);
+}
+
+// Spanish-aware token estimator
+function estimateTokens(text) {
+  if (!text) return 0;
+  const nonAsciiCount = (text.match(/[^\x00-\x7F]/g) || []).length;
+  const ratio   = nonAsciiCount / text.length;
+  const divisor = 3.8 - ratio * 2.1; // 3.8 (all ASCII) → ~3.1 (all non-ASCII)
+  return Math.ceil(text.length / divisor);
+}
+
+// ── Render ────────────────────────────────────────────────
 
 function renderPromptBuilder() {
   const area = document.getElementById('content-area');
@@ -140,6 +172,8 @@ function renderPromptBuilder() {
       <div class="builder-panels">
 
         <div class="builder-form" id="builder-panel-form">
+
+          ${buildHistoryHTML()}
 
           <div>
             <div class="field-label" style="margin-bottom:8px">Templates rápidos</div>
@@ -184,12 +218,10 @@ function renderPromptBuilder() {
               <label class="field-label">Técnicas</label>
               <div class="options-row">
                 <label class="check-option">
-                  <input type="checkbox" id="b-cot">
-                  Chain of Thought
+                  <input type="checkbox" id="b-cot"> Chain of Thought
                 </label>
                 <label class="check-option">
-                  <input type="checkbox" id="b-selfcheck">
-                  Auto-verificación
+                  <input type="checkbox" id="b-selfcheck"> Auto-verificación
                 </label>
               </div>
             </div>
@@ -212,15 +244,19 @@ function renderPromptBuilder() {
         <div class="builder-sidebar" id="builder-panel-preview">
           <div class="preview-header">
             <div class="preview-title">Prompt generado</div>
-            <div class="preview-tokens" id="token-count">~0 tokens</div>
+            <div class="preview-meta">
+              <span class="preview-model" id="preview-model"></span>
+              <span class="preview-tokens" id="token-count">~0 tokens</span>
+            </div>
           </div>
           <div class="preview-box" id="prompt-preview">
             <span class="preview-placeholder">Completa el formulario y el prompt aparecerá aquí...</span>
           </div>
           <div class="preview-actions">
             <button class="btn btn-primary" id="btn-copy">Copiar prompt</button>
+            <button class="btn" id="btn-open-claude" style="display:none">Abrir en Claude →</button>
             <button class="btn" id="btn-clear">Limpiar</button>
-            <span class="copy-ok" id="copy-ok">✓ copiado</span>
+            <span class="copy-ok" id="copy-ok">✓ guardado</span>
           </div>
         </div>
 
@@ -230,6 +266,8 @@ function renderPromptBuilder() {
   initBuilderListeners();
   initBuilderTabs();
   initBuilderResize();
+  restoreBuilderFields();
+  assemblePrompt();
 }
 
 function initBuilderTabs() {
@@ -247,11 +285,9 @@ function initBuilderTabs() {
 function initBuilderResize() {
   const builder = document.getElementById('prompt-builder');
   if (!builder) return;
-
   const applyNarrow = (isNarrow) => {
     builder.classList.toggle('narrow', isNarrow);
     if (isNarrow) {
-      // Aplica estado inicial: form visible, preview oculto
       const activePanel = document.querySelector('.builder-tab.active')?.dataset.panel || 'form';
       document.getElementById('builder-panel-form').classList.toggle('tab-hidden', activePanel !== 'form');
       document.getElementById('builder-panel-preview').classList.toggle('tab-hidden', activePanel !== 'preview');
@@ -260,10 +296,7 @@ function initBuilderResize() {
       document.getElementById('builder-panel-preview').classList.remove('tab-hidden');
     }
   };
-
-  const ro = new ResizeObserver(entries => {
-    applyNarrow(entries[0].contentRect.width < 620);
-  });
+  const ro = new ResizeObserver(entries => applyNarrow(entries[0].contentRect.width < 620));
   ro.observe(builder);
 }
 
@@ -273,8 +306,8 @@ function initBuilderListeners() {
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.addEventListener('input', assemblePrompt);
-      el.addEventListener('change', assemblePrompt);
+      el.addEventListener('input',  () => { saveBuilderState(); assemblePrompt(); });
+      el.addEventListener('change', () => { saveBuilderState(); assemblePrompt(); });
     }
   });
 
@@ -284,6 +317,24 @@ function initBuilderListeners() {
 
   document.getElementById('btn-copy').addEventListener('click', copyPrompt);
   document.getElementById('btn-clear').addEventListener('click', clearBuilder);
+
+  // "Abrir en Claude" button
+  const openClaudeBtn = document.getElementById('btn-open-claude');
+  if (openClaudeBtn) {
+    openClaudeBtn.addEventListener('click', openInClaude);
+  }
+
+  // History chip actions (delegated on the stable form panel, not #builder-history
+  // which gets replaced via outerHTML on every history update)
+  const formPanel = document.getElementById('builder-panel-form');
+  if (formPanel) {
+    formPanel.addEventListener('click', e => {
+      const loadBtn = e.target.closest('.history-load');
+      if (loadBtn) { loadPromptFromHistory(Number(loadBtn.dataset.id)); return; }
+      const delBtn = e.target.closest('.history-delete');
+      if (delBtn) { deletePromptFromHistory(Number(delBtn.dataset.id)); } // global in app.js
+    });
+  }
 }
 
 function getVal(id) {
@@ -293,9 +344,7 @@ function getVal(id) {
   return el.value.trim();
 }
 
-function xmlTag(tag, content) {
-  return `<${tag}>\n${content}\n</${tag}>`;
-}
+function xmlTag(tag, content) { return `<${tag}>\n${content}\n</${tag}>`; }
 
 function assemblePrompt() {
   const role         = getVal('b-role');
@@ -307,12 +356,21 @@ function assemblePrompt() {
   const examples     = getVal('b-examples');
   const cot          = getVal('b-cot');
   const selfcheck    = getVal('b-selfcheck');
+  const model        = getVal('b-model');
+
+  // Update model label and "Abrir en Claude" button visibility
+  const modelObj     = MODEL_OPTIONS.find(o => o.value === model);
+  const modelEl      = document.getElementById('preview-model');
+  const openClaudeBtn = document.getElementById('btn-open-claude');
+  if (modelEl) modelEl.textContent = modelObj ? modelObj.label : '';
+  if (openClaudeBtn) {
+    openClaudeBtn.style.display = (modelObj && modelObj.openUrl) ? '' : 'none';
+  }
 
   const parts = [];
-
-  if (role)    parts.push(xmlTag('rol', role));
-  if (context) parts.push(xmlTag('contexto', context));
-  if (task)    parts.push(xmlTag('tarea', task));
+  if (role)         parts.push(xmlTag('rol',          role));
+  if (context)      parts.push(xmlTag('contexto',     context));
+  if (task)         parts.push(xmlTag('tarea',        task));
 
   const fmtObj = FORMAT_OPTIONS.find(o => o.value === format);
   if (fmtObj && fmtObj.instruction) parts.push(xmlTag('formato', fmtObj.instruction));
@@ -321,17 +379,15 @@ function assemblePrompt() {
   if (toneObj && toneObj.instruction) parts.push(xmlTag('tono', toneObj.instruction));
 
   if (restrictions) parts.push(xmlTag('restricciones', restrictions));
-
-  if (examples) parts.push(xmlTag('ejemplos', examples));
+  if (examples)     parts.push(xmlTag('ejemplos',      examples));
 
   if (cot) parts.push(xmlTag('razonamiento',
     'Piensa paso a paso antes de responder. Muestra tu proceso de razonamiento de forma explícita antes de dar la respuesta final.'));
-
   if (selfcheck) parts.push(xmlTag('verificacion',
     'Antes de responder, revisa tu propio output: ¿cumple la tarea al pie de la letra? ¿hay errores o imprecisiones? ¿respeta todas las restricciones? Corrige antes de entregar la respuesta final.'));
 
-  const preview = document.getElementById('prompt-preview');
-  const tokenEl = document.getElementById('token-count');
+  const preview  = document.getElementById('prompt-preview');
+  const tokenEl  = document.getElementById('token-count');
   const tabBadge = document.getElementById('tab-token-count');
 
   if (!parts.length) {
@@ -341,11 +397,10 @@ function assemblePrompt() {
     return;
   }
 
-  const fullText = parts.join('\n\n');
+  const fullText     = parts.join('\n\n');
   preview.textContent = fullText;
-
-  const approxTokens = Math.ceil(fullText.length / 3.8);
-  const tokenLabel = `~${approxTokens.toLocaleString()} tokens`;
+  const approxTokens  = estimateTokens(fullText);
+  const tokenLabel    = `~${approxTokens.toLocaleString()} tokens`;
   tokenEl.textContent = tokenLabel;
   if (tabBadge) tabBadge.textContent = tokenLabel;
 }
@@ -353,11 +408,22 @@ function assemblePrompt() {
 function copyPrompt() {
   const text = document.getElementById('prompt-preview').textContent;
   if (!text || text.includes('aparecerá aquí')) return;
-  navigator.clipboard.writeText(text).then(() => {
+  navigator.clipboard.writeText(text).then(async () => {
     const ok = document.getElementById('copy-ok');
     ok.classList.add('show');
     setTimeout(() => ok.classList.remove('show'), 2000);
+    // Save to history (global function in app.js)
+    if (typeof savePromptToHistory === 'function') {
+      await savePromptToHistory(text, { ...state.builder });
+    }
   });
+}
+
+function openInClaude() {
+  const text = document.getElementById('prompt-preview').textContent;
+  if (!text || text.includes('aparecerá aquí')) return;
+  const url = `https://claude.ai/new?q=${encodeURIComponent(text)}`;
+  window.open(url, '_blank', 'noopener');
 }
 
 function clearBuilder() {
@@ -373,6 +439,12 @@ function clearBuilder() {
     const el = document.getElementById(id);
     if (el) el.checked = false;
   });
+  if (typeof state !== 'undefined') {
+    state.builder = {
+      role: '', context: '', task: '', restrictions: '', examples: '',
+      format: '', tone: '', model: 'claude-sonnet-4', cot: false, selfcheck: false,
+    };
+  }
   assemblePrompt();
 }
 
@@ -385,14 +457,38 @@ function loadTemplate(name) {
     if (el.type === 'checkbox') el.checked = val;
     else el.value = val;
   };
-  set('b-role', tpl.role);
-  set('b-context', tpl.context);
-  set('b-task', tpl.task);
-  set('b-format', tpl.format);
-  set('b-tone', tpl.tone);
+  set('b-role',         tpl.role);
+  set('b-context',      tpl.context);
+  set('b-task',         tpl.task);
+  set('b-format',       tpl.format);
+  set('b-tone',         tpl.tone);
   set('b-restrictions', tpl.restrictions);
-  set('b-examples', tpl.examples);
-  set('b-cot', tpl.cot);
-  set('b-selfcheck', tpl.selfcheck);
+  set('b-examples',     tpl.examples);
+  set('b-cot',          tpl.cot);
+  set('b-selfcheck',    tpl.selfcheck);
+  saveBuilderState();
+  assemblePrompt();
+}
+
+function loadPromptFromHistory(id) {
+  if (!_promptHistory) return; // global in app.js
+  const record = _promptHistory.find(p => p.id === id);
+  if (!record) return;
+  // Restore builder state from history record
+  if (typeof state !== 'undefined') {
+    state.builder = {
+      role:         record.role         || '',
+      context:      record.context      || '',
+      task:         record.task         || '',
+      restrictions: record.restrictions || '',
+      examples:     record.examples     || '',
+      format:       record.format       || '',
+      tone:         record.tone         || '',
+      model:        record.model        || 'claude-sonnet-4',
+      cot:          !!record.cot,
+      selfcheck:    !!record.selfcheck,
+    };
+  }
+  restoreBuilderFields();
   assemblePrompt();
 }

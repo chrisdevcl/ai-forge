@@ -1,3 +1,5 @@
+// Cada categoría es un tema de contenido. El color viene de una variable CSS
+// (definida por tema en style.css) para que la paleta sea coherente en claro/oscuro.
 const CATEGORIES = [
   { id: 'all',             label: 'Todo',                icon: '⊞', desc: '' },
   { id: 'fundamentos',     label: 'Fundamentos',         icon: '◈', desc: 'Conceptos base de los LLMs' },
@@ -7,19 +9,23 @@ const CATEGORIES = [
   { id: 'buenas-practicas',label: 'Buenas prácticas',    icon: '✓', desc: 'Patrones que funcionan' },
   { id: 'malas-practicas', label: 'Malas prácticas',     icon: '⚠', desc: 'Antipatrones a evitar' },
   { id: 'trucos',          label: 'Trucos secretos',     icon: '◉', desc: 'Lo que casi nadie sabe' },
+  { id: 'glosario',        label: 'Glosario',            icon: '§', desc: 'Índice rápido de términos — cada uno enlaza a su explicación completa' },
+  { id: 'favoritos',       label: 'Favoritos',           icon: '♥', desc: 'Tus tarjetas guardadas', virtual: true },
   { id: 'prompts',         label: 'Constructor',         icon: '⌘', desc: 'Arma tu prompt ideal' },
 ];
 
 const CATEGORY_COLORS = {
-  all:              '#d4e800',
-  fundamentos:      '#4a9eff',
-  agentes:          '#00c896',
-  mitos:            '#ff4f4f',
-  tips:             '#f5a623',
-  'buenas-practicas': '#4ade80',
-  'malas-practicas':  '#fb7185',
-  trucos:           '#d4e800',
-  prompts:          '#22d3ee',
+  all:              'var(--accent)',
+  fundamentos:      'var(--c-fundamentos)',
+  agentes:          'var(--c-agentes)',
+  mitos:            'var(--c-mitos)',
+  tips:             'var(--c-tips)',
+  'buenas-practicas': 'var(--c-buenas-practicas)',
+  'malas-practicas':  'var(--c-malas-practicas)',
+  trucos:           'var(--c-trucos)',
+  glosario:         'var(--c-glosario)',
+  favoritos:        'var(--c-favoritos)',
+  prompts:          'var(--c-prompts)',
 };
 
 const TYPE_LABEL = {
@@ -30,13 +36,55 @@ const TYPE_LABEL = {
   practice:     'Buena práctica',
   'bad-practice': 'Mala práctica',
   trick:        'Truco',
+  glossary:     'Glosario',
 };
+
+// ── Niveles de dificultad ───────────────────────────────────
+// El nivel no usa color propio (para no competir con el color de categoría):
+// se muestra como un medidor de puntos (rank de 1 a 3) en el color de acento.
+const LEVELS = [
+  { id: 'basico',     rank: 1, label: 'Básico',     desc: 'Para cualquiera que usa IA, sin conocimientos técnicos' },
+  { id: 'intermedio', rank: 2, label: 'Intermedio', desc: 'Para quien escribe prompts con intención y arma flujos de trabajo' },
+  { id: 'avanzado',   rank: 3, label: 'Avanzado',   desc: 'Para quien construye sobre la API o integra IA en sistemas' },
+];
+
+// ── Ruta guiada para principiantes (orden por dependencia conceptual) ──
+// No es una categoría (no aparece en la barra de pestañas): se accede desde
+// el banner de inicio para no mezclarse con los temas de contenido.
+const BASIC_PATH = [
+  'f8', 'f9', 'f10', 'f11',
+  'm1', 'm2', 'mp3',
+  'f4', 'm5',
+  't1', 't3', 't4', 't6', 'tr3',
+];
+
+// ── Índice del glosario ──────────────────────────────────────
+// Cada término apunta a la tarjeta que lo explica en profundidad (muchos ya
+// tienen una tarjeta completa en Fundamentos/Agentes/etc. — el glosario no
+// la duplica, solo la indexa). Los términos sin tarjeta propia (embeddings,
+// RLHF, prompt injection) sí tienen su propia mini-tarjeta en CARDS.
+const GLOSSARY_INDEX = [
+  { term: 'Token',            def: 'El fragmento mínimo de texto que procesa un modelo. No es una palabra completa.', cardId: 'f1' },
+  { term: 'Contexto',         def: 'Todo lo que el modelo "tiene a la vista" en un momento dado. Es limitado y se agota.', cardId: 'f2' },
+  { term: 'Temperatura',      def: 'Un ajuste técnico que controla qué tan predecible o creativo es el resultado.', cardId: 'f3' },
+  { term: 'Alucinación',      def: 'Cuando la IA da una respuesta segura y bien escrita, pero falsa o inventada.', cardId: 'f4' },
+  { term: 'RAG',              def: 'Buscar información real en una fuente externa y dársela a la IA antes de que responda.', cardId: 'f5' },
+  { term: 'System prompt',    def: 'Las instrucciones "permanentes" que definen cómo debe comportarse la IA.', cardId: 'f6' },
+  { term: 'Fine-tuning',      def: 'Un reentrenamiento adicional de un modelo ya existente, para un caso de uso concreto.', cardId: 'f7' },
+  { term: 'LLM',              def: 'El tipo de programa detrás de Claude, ChatGPT o Gemini. "Modelo de lenguaje grande".', cardId: 'f8' },
+  { term: 'Prompt',           def: 'La instrucción, pregunta o pedido que le escribes a la IA.', cardId: 'f11' },
+  { term: 'Agente',           def: 'Un modelo al que se le da la capacidad de actuar por su cuenta, no solo conversar.', cardId: 'a1' },
+  { term: 'Few-shot',         def: 'Mostrarle a la IA 2 o 3 ejemplos del resultado exacto que esperas.', cardId: 'bp2' },
+  { term: 'Embeddings',       def: 'Representar texto como números, para calcular qué tan parecidos son dos textos.', cardId: 'g1' },
+  { term: 'RLHF',             def: 'La etapa de entrenamiento en la que personas califican las respuestas del modelo.', cardId: 'g2' },
+  { term: 'Prompt injection',  def: 'Un intento de manipular a la IA con texto malicioso escondido en el contenido.', cardId: 'g3' },
+];
 
 const CARDS = [
 
   /* ── FUNDAMENTOS ─────────────────────────────────────── */
   {
-    id: 'f1', category: 'fundamentos', type: 'fundamento',
+    id: 'f1', category: 'fundamentos', type: 'fundamento', level: 'intermedio',
     title: 'Tokens: la moneda real del modelo',
     summary: 'No son palabras. Son fragmentos subléxicos. El español cuesta ~25% más tokens que el inglés para el mismo contenido.',
     detail: `
@@ -62,7 +110,7 @@ Por eso el español consume más tokens que el inglés para el mismo significado
     tags: ['tokens', 'costo', 'llm', 'api'],
   },
   {
-    id: 'f2', category: 'fundamentos', type: 'fundamento',
+    id: 'f2', category: 'fundamentos', type: 'fundamento', level: 'intermedio',
     title: 'Ventana de contexto: la memoria de trabajo',
     summary: 'Todo lo que el modelo "ve" en un momento dado. Finita, costosa, y con efectos secundarios no obvios.',
     detail: `
@@ -83,7 +131,7 @@ La ventana de contexto es el espacio total disponible: system prompt + historial
     tags: ['contexto', 'memoria', 'llm', 'performance'],
   },
   {
-    id: 'f3', category: 'fundamentos', type: 'fundamento',
+    id: 'f3', category: 'fundamentos', type: 'fundamento', level: 'intermedio',
     title: 'Temperatura: el dial de creatividad',
     summary: 'Controla la aleatoriedad del output. 0 para código; 0.7 para texto; 1+ para exploración creativa.',
     detail: `
@@ -103,31 +151,28 @@ La temperatura modifica la distribución de probabilidad sobre los posibles toke
     tags: ['temperatura', 'parámetros', 'llm', 'producción'],
   },
   {
-    id: 'f4', category: 'fundamentos', type: 'fundamento',
-    title: 'Alucinación: el problema central',
-    summary: 'El modelo no miente. Predice tokens plausibles. El resultado puede ser convincentemente incorrecto.',
+    id: 'f4', category: 'fundamentos', type: 'fundamento', level: 'basico',
+    title: 'Alucinación: cuando la IA inventa con total seguridad',
+    summary: 'Una "alucinación" es cuando la IA te da una respuesta que suena segura pero es falsa o inventada — sin darse cuenta de que se equivoca.',
     detail: `
-Una alucinación ocurre cuando el modelo genera texto que parece correcto y confiado pero es factualmente incorrecto. No es un bug de implementación; es una propiedad emergente de cómo funcionan los LLMs.
+Una "alucinación" es cuando la IA te da una respuesta que suena segura y bien escrita, pero que en realidad es falsa o inventada. Es como un compañero de trabajo que prefiere improvisar una respuesta antes que decir "no sé".
 
-**Por qué sucede:** El modelo aprende a predecir texto plausible, no texto verdadero. No tiene acceso al mundo real ni "sabe" cuándo no sabe algo. Texto confiado ≠ texto correcto.
+**Un ejemplo cotidiano:** Le preguntas a un chatbot el título de un libro sobre un tema específico. Te responde con un título, autor y año concretos, con total seguridad. El problema: ese libro no existe. La IA lo inventó combinando patrones de libros similares que sí conoce.
 
-**Tipos más comunes:**
-- Referencias, papers y URLs que no existen
-- Fechas y números inventados con precisión engañosa
-- Nombres de funciones o APIs que no existen
-- Mezcla de hechos reales con detalles inventados
+**Por qué pasa esto:** La IA no "sabe" cosas como una enciclopedia que consulta. Funciona adivinando, palabra por palabra, cuál es la continuación más probable de un texto, basándose en todo lo que leyó durante su entrenamiento (el proceso en el que se le mostraron enormes cantidades de texto para que aprendiera patrones del lenguaje). No tiene forma de "revisar" si lo que dice es cierto antes de decirlo, y no distingue entre un dato que recuerda bien y uno que está rellenando por probabilidad.
 
-**Cómo reducirlas:**
-- Grounding: proporciona los datos reales en el prompt
-- Instrucción explícita: "Si no estás seguro de un dato, dilo explícitamente"
-- RAG para tareas que requieren información específica y actualizada
-- Temperatura baja para outputs factuales
-- Verificar siempre claims importantes antes de usar el output
+**Dónde aparece más seguido:**
+- Nombres de libros, artículos o páginas web que no existen
+- Fechas, cifras o citas inventadas pero muy específicas (lo cual las hace más creíbles)
+- Datos sobre personas o empresas poco conocidas
+- Explicaciones técnicas mezcladas: una parte correcta y otra inventada, sin que se note la diferencia
+
+**Qué puedes hacer distinto la próxima vez:** Trata cualquier dato concreto (fechas, nombres, cifras, citas) que te dé la IA como "por confirmar", no como un hecho. Si es importante, verifícalo en una fuente aparte antes de usarlo. Y pídele directamente: "si no estás seguro, dímelo" — ayuda más de lo que parece.
     `,
     tags: ['alucinación', 'confiabilidad', 'llm', 'rag'],
   },
   {
-    id: 'f5', category: 'fundamentos', type: 'fundamento',
+    id: 'f5', category: 'fundamentos', type: 'fundamento', level: 'avanzado',
     title: 'RAG: Retrieval Augmented Generation',
     summary: 'Recuperar información externa relevante e inyectarla en el contexto antes de llamar al modelo.',
     detail: `
@@ -155,7 +200,7 @@ RAG es el patrón de buscar información en una fuente externa (base de datos ve
     tags: ['rag', 'embeddings', 'arquitectura', 'producción'],
   },
   {
-    id: 'f6', category: 'fundamentos', type: 'fundamento',
+    id: 'f6', category: 'fundamentos', type: 'fundamento', level: 'intermedio',
     title: 'System Prompt vs User Prompt',
     summary: 'El system define quién es. El user define qué hace. Confundirlos produce comportamientos inconsistentes.',
     detail: `
@@ -180,7 +225,7 @@ La distinción de roles en la API es fundamental para construir sistemas predeci
     tags: ['system-prompt', 'prompting', 'arquitectura', 'api'],
   },
   {
-    id: 'f7', category: 'fundamentos', type: 'fundamento',
+    id: 'f7', category: 'fundamentos', type: 'fundamento', level: 'avanzado',
     title: 'Fine-tuning vs Prompting vs RAG',
     summary: 'Tres herramientas distintas para problemas distintos. Elegir mal la herramienta multiplica el costo.',
     detail: `
@@ -209,10 +254,97 @@ Antes de elegir una técnica, entiende qué problema resuelve cada una:
     `,
     tags: ['fine-tuning', 'rag', 'prompting', 'arquitectura'],
   },
+  {
+    id: 'f8', category: 'fundamentos', type: 'fundamento', level: 'basico',
+    title: '¿Qué es un LLM (modelo de lenguaje)?',
+    summary: 'Un LLM es un programa entrenado con muchísimo texto que aprendió a predecir, palabra por palabra, cuál es la continuación más probable de cualquier frase.',
+    detail: `
+"LLM" son las siglas de "Large Language Model" (modelo de lenguaje grande, en inglés). Es el tipo de programa detrás de Claude, ChatGPT, Gemini y similares.
+
+**La analogía más simple:** Imagina el autocompletado del teclado de tu celular, pero muchísimo más potente. Cuando escribes "voy a llegar..." tu teléfono te sugiere "tarde". Un LLM hace lo mismo, pero entrenado con una porción enorme de todo el texto escrito disponible en internet, libros y otras fuentes, así que sus "sugerencias" pueden ser párrafos enteros, coherentes y sobre casi cualquier tema.
+
+**Cómo llegó a ser así:** Durante su entrenamiento, el modelo leyó una cantidad gigantesca de texto y fue ajustando internamente millones de parámetros (algo parecido a "perillas" numéricas) hasta que se volvió muy bueno prediciendo qué palabra sigue después de otra, dado el contexto. No memoriza textos completos como una base de datos; aprende patrones del lenguaje.
+
+**Lo que se sigue de esta idea:**
+- No "busca" respuestas en internet en tiempo real (salvo que tenga una herramienta conectada para hacerlo)
+- No tiene una base de datos de hechos verificados; genera texto plausible basado en patrones
+- Por eso a veces se equivoca con total seguridad (ver "alucinación")
+
+**Qué puedes hacer distinto la próxima vez:** Cuando uses una IA, recuerda que estás hablando con un "predictor de texto" extremadamente sofisticado, no con una enciclopedia. Es una herramienta poderosa para redactar, resumir y razonar sobre lo que tú le das — pero no es una fuente de verdad por sí sola.
+    `,
+    tags: ['llm', 'fundamentos', 'introducción'],
+  },
+  {
+    id: 'f9', category: 'fundamentos', type: 'fundamento', level: 'basico',
+    title: 'IA, Machine Learning, LLM y Agente: el mapa para no confundirlos',
+    summary: 'Son términos relacionados pero no son lo mismo. Cada uno es una "caja" más chica dentro de la anterior.',
+    detail: `
+Son cuatro términos que la gente usa como sinónimos, pero cada uno significa algo distinto y más específico que el anterior.
+
+**Inteligencia Artificial (IA):** El concepto más amplio de todos. Se refiere a cualquier sistema informático que realiza tareas que normalmente asociamos con inteligencia humana: reconocer una imagen, traducir un idioma, jugar ajedrez. Existe desde hace décadas, mucho antes de ChatGPT.
+
+**Machine Learning (aprendizaje automático):** Una forma específica de hacer IA. En vez de programar reglas explícitas ("si pasa esto, haz aquello"), se le muestran al sistema muchísimos ejemplos y el sistema "aprende" los patrones por sí mismo. Es como enseñarle a alguien a reconocer perros mostrándole miles de fotos, en lugar de describirle con palabras cómo es un perro.
+
+**LLM (modelo de lenguaje grande):** Un tipo particular de sistema de machine learning, especializado en texto. Aprendió a predecir y generar lenguaje humano después de leer cantidades enormes de texto. Claude y ChatGPT son LLMs.
+
+**Agente:** Un LLM al que además se le da la capacidad de actuar: buscar en internet, leer archivos, ejecutar código, usar aplicaciones — no solo conversar. El agente decide por sí mismo qué acciones tomar para cumplir una tarea, en vez de simplemente responder un mensaje.
+
+**El mapa resumido:** IA (todo el universo) → Machine Learning (una forma de hacer IA) → LLM (un tipo de sistema de machine learning, para texto) → Agente (un LLM con capacidad de actuar, no solo de hablar).
+
+**Qué puedes hacer distinto la próxima vez:** Cuando alguien diga "la IA hizo esto", puedes preguntarte con más precisión: ¿fue un modelo de lenguaje respondiendo, o un agente que además ejecutó una acción por su cuenta? La diferencia importa para entender qué tan supervisado debería estar.
+    `,
+    tags: ['ia', 'machine-learning', 'llm', 'agente', 'introducción'],
+  },
+  {
+    id: 'f10', category: 'fundamentos', type: 'fundamento', level: 'basico',
+    title: '¿Cómo "aprendió" el modelo?',
+    summary: 'Leyendo una cantidad enorme de texto y ajustando, una y otra vez, sus predicciones hasta acertar cada vez más seguido — parecido a cómo se practica un instrumento a fuerza de repetición.',
+    detail: `
+Cuando decimos que un modelo fue "entrenado", nos referimos a un proceso concreto, no a que "estudió" como una persona.
+
+**La analogía:** Imagina a alguien aprendiendo a tocar piano de oído, sin partitura, solo escuchando miles y miles de horas de música y probando notas hasta que empieza a predecir qué nota viene después en una melodía conocida. Así aprendió el modelo, pero con texto en vez de música: leyó una cantidad gigantesca de texto (libros, artículos, sitios web, código) y, en cada intento, trató de predecir la siguiente palabra. Cuando fallaba, se ajustaba un poco. Repetido billones de veces, esos ajustes lo volvieron muy bueno prediciendo lenguaje.
+
+**Un paso adicional importante:** Después de esa primera etapa, personas reales revisan y califican las respuestas del modelo (¿es útil?, ¿es segura?, ¿es clara?), y el modelo se ajusta también según esas calificaciones. Esto es lo que lo hace comportarse como un asistente conversacional, y no solo como un autocompletado sin filtro.
+
+**Lo importante de entender:**
+- Este proceso ya terminó cuando tú usas el modelo. Es como el libro impreso: ya está "hecho".
+- El modelo no sigue aprendiendo mientras conversa contigo (ver mito "la IA aprende de mis conversaciones")
+- Los datos con los que aprendió tienen una fecha de corte: hay eventos posteriores a ese entrenamiento que el modelo simplemente no conoce, salvo que tenga acceso a buscar información actual
+
+**Qué puedes hacer distinto la próxima vez:** Si necesitas información muy reciente, no asumas que el modelo la conoce. Pregúntale primero si tiene acceso a información actualizada, o dásela tú mismo en el mensaje.
+    `,
+    tags: ['entrenamiento', 'llm', 'introducción'],
+  },
+  {
+    id: 'f11', category: 'fundamentos', type: 'fundamento', level: 'basico',
+    title: '¿Qué es un "prompt"?',
+    summary: 'Un "prompt" es simplemente la instrucción o pregunta que le escribes a la IA. Cómo lo redactes cambia mucho la calidad de la respuesta.',
+    detail: `
+"Prompt" es la palabra que se usa para lo que tú le escribes a la IA: una pregunta, una instrucción, un pedido. No es un término misterioso — es, literalmente, tu mensaje.
+
+**Por qué existe una palabra especial para esto:** Porque la forma en que redactas ese mensaje afecta mucho la respuesta que obtienes, así que vale la pena tratarlo como algo que se puede mejorar, igual que se puede mejorar cómo se redacta un correo o una búsqueda en un buscador.
+
+**Un prompt vago vs. uno claro:**
+
+Vago: *"Ayúdame con mi currículum."*
+→ La IA no sabe qué necesitas: ¿revisarlo?, ¿escribirlo desde cero?, ¿traducirlo?
+
+Claro: *"Revisa mi currículum y dime 3 cosas concretas que podría mejorar para un puesto de atención al cliente."*
+→ La IA sabe exactamente qué hacer y qué esperar de ti.
+
+**Los tres ingredientes de un buen prompt:**
+- **Qué necesitas** — dilo de forma específica, no genérica
+- **Contexto relevante** — cualquier detalle que ayude a entender la situación
+- **Cómo quieres el resultado** — corto, en lista, formal, etc.
+
+**Qué puedes hacer distinto la próxima vez:** Antes de enviar tu mensaje, revisa si una persona que no sabe nada de tu situación entendería exactamente qué le estás pidiendo. Si no, agrégale un poco más de contexto.
+    `,
+    tags: ['prompt', 'introducción', 'prompting'],
+  },
 
   /* ── AGENTES ─────────────────────────────────────────── */
   {
-    id: 'a1', category: 'agentes', type: 'agent',
+    id: 'a1', category: 'agentes', type: 'agent', level: 'intermedio',
     title: '¿Qué es realmente un agente de IA?',
     summary: 'Un LLM con herramientas que ejecuta en bucles. El modelo decide dinámicamente qué hacer y cuándo parar.',
     detail: `
@@ -232,7 +364,7 @@ Anthropic define "agente" como un LLM que dirige dinámicamente sus propios proc
     tags: ['agente', 'arquitectura', 'definición', 'llm'],
   },
   {
-    id: 'a2', category: 'agentes', type: 'agent',
+    id: 'a2', category: 'agentes', type: 'agent', level: 'avanzado',
     title: 'Los 4 tipos de memoria en agentes',
     summary: 'In-context, externa, episódica y semántica. Usarlas bien es la diferencia entre un agente inútil y uno poderoso.',
     detail: `
@@ -263,7 +395,7 @@ Cada tipo de memoria tiene propiedades distintas. Los mejores sistemas usan toda
     tags: ['memoria', 'agente', 'arquitectura', 'rag'],
   },
   {
-    id: 'a3', category: 'agentes', type: 'agent',
+    id: 'a3', category: 'agentes', type: 'agent', level: 'avanzado',
     title: 'Tool calling: cómo el agente actúa',
     summary: 'El modelo no ejecuta código. Genera JSON estructurado. Tu runtime lo ejecuta y devuelve el resultado.',
     detail: `
@@ -287,7 +419,7 @@ Cuando un modelo "usa una herramienta", el proceso real es completamente distint
     tags: ['tools', 'function-calling', 'agente', 'seguridad'],
   },
   {
-    id: 'a4', category: 'agentes', type: 'agent',
+    id: 'a4', category: 'agentes', type: 'agent', level: 'avanzado',
     title: 'Multi-agent: orquestación y paralelismo',
     summary: 'Un agente puede coordinar a otros. Útil para tareas paralelas, especializadas, o que superan la ventana de contexto.',
     detail: `
@@ -315,7 +447,7 @@ Dos agentes resuelven el mismo problema de forma independiente. Un tercero eval�
     tags: ['multi-agent', 'orquestación', 'arquitectura', 'paralelismo'],
   },
   {
-    id: 'a5', category: 'agentes', type: 'agent',
+    id: 'a5', category: 'agentes', type: 'agent', level: 'intermedio',
     title: 'IA en el desarrollo: fortalezas y límites reales',
     summary: 'Excelente para prototipar y boilerplate. Peligrosa sin supervisión para código de producción, ya sea en el chat web, una app o un plugin del editor.',
     detail: `
@@ -345,7 +477,7 @@ Las herramientas de IA para desarrollo van desde el chat web (ChatGPT, Claude.ai
     tags: ['ide', 'coding', 'agente', 'cursor', 'copilot', 'producción'],
   },
   {
-    id: 'a6', category: 'agentes', type: 'agent',
+    id: 'a6', category: 'agentes', type: 'agent', level: 'avanzado',
     title: 'AGENTS.md y archivos de contexto',
     summary: 'Los archivos de instrucciones para agentes de IDE son contexto, no entrenamiento. Úsalos bien.',
     detail: `
@@ -372,54 +504,54 @@ Cursor usa \`.cursorrules\`, Claude Code usa \`CLAUDE.md\`, GitHub Copilot usa \
 
   /* ── MITOS ───────────────────────────────────────────── */
   {
-    id: 'm1', category: 'mitos', type: 'myth',
+    id: 'm1', category: 'mitos', type: 'myth', level: 'basico',
     title: '"La IA aprende de mis conversaciones"',
-    summary: 'FALSO. Los pesos del modelo son fijos tras el entrenamiento. Ningún chat, web, app o plugin modifica el modelo en absoluto.',
+    summary: 'FALSO. Un modelo de IA es como un libro ya impreso: nada de lo que hablas con él reescribe sus páginas. Cada chat nuevo empieza desde cero.',
     detail: `
-**El mito:** "Si le corrijo errores a Claude, ChatGPT o Copilot, eventualmente aprenderá y no los repetirá."
+**El mito:** "Si le corrijo errores a Claude, ChatGPT o Copilot, eventualmente va a aprender y va a dejar de cometerlos."
 
-**La realidad:** Los pesos del modelo son fijos después del entrenamiento. Una conversación tuya no los modifica en absoluto, sin importar si hablas con Claude.ai, ChatGPT, GitHub Copilot en tu editor, o cualquier otra interfaz. Lo que parece "aprendizaje" dentro de una sesión es solo contexto: el modelo ve tu corrección y la usa para el resto de esa conversación. Al cerrar la sesión, desaparece completamente.
+**La realidad:** Imagina un modelo de IA como un libro ya impreso y publicado. Puedes subrayarlo, escribirle notas al margen, discutir su contenido — pero las páginas del libro en sí no cambian. Eso es lo que pasa técnicamente: el modelo termina su "entrenamiento" (el proceso en el que aprendió leyendo enormes cantidades de texto) y a partir de ahí queda fijo, como el libro impreso. Tu conversación de hoy no lo modifica, sin importar si usas Claude.ai, ChatGPT, Copilot en tu editor, o cualquier otra app.
 
-**¿Qué SÍ puede cambiar el modelo?**
-- Fine-tuning: proceso formal y costoso de re-entrenamiento con datos curados, que hacen los laboratorios o empresas que construyen sobre la API
-- RLHF adicional: retroalimentación humana a escala usada por los labs para mejorar versiones futuras del producto
-- Memorias persistentes: datos guardados explícitamente que se inyectan en futuros contextos. Esto NO es aprendizaje del modelo; es contexto adicional.
+Lo que sí ocurre dentro de una conversación se parece más a la memoria de corto plazo: si le corriges algo, el modelo "recuerda" esa corrección mientras dure ese chat, porque la tiene delante como parte de lo que estás hablando. Pero en cuanto abres una conversación nueva, esa corrección desaparece por completo, como si nunca hubiera pasado.
 
-**La implicación práctica:** Si necesitas que la IA "recuerde" preferencias entre sesiones, debes implementar un sistema de memoria explícito. Claude Projects, ChatGPT Memory y similares hacen esto automáticamente para usuarios de las apps de consumo, pero si construyes sobre la API, debes implementarlo tú.
+**Entonces, ¿qué SÍ cambia un modelo?**
+- Un reentrenamiento formal que hacen las empresas que crean el modelo (a esto se le llama "fine-tuning"), con datos cuidadosamente seleccionados — no algo que ocurra por usarlo normalmente.
+- Nuevas versiones del modelo que la empresa lanza cada cierto tiempo, entrenadas desde cero con más y mejores datos.
+- Sistemas de "memoria" que algunas apps ofrecen (como ChatGPT Memory): ahí sí se guarda algo explícitamente, pero es una nota externa que se te vuelve a mostrar al modelo al inicio del siguiente chat — no es que el modelo haya aprendido.
+
+**Qué puedes hacer distinto la próxima vez:** Si quieres que la IA recuerde algo entre conversaciones (tu estilo, tus proyectos, tus preferencias), no asumas que ya lo sabe. Actívale la función de memoria si la app la ofrece, o pégaselo tú mismo al inicio de cada chat nuevo.
     `,
     tags: ['mito', 'aprendizaje', 'fine-tuning', 'memoria'],
   },
   {
-    id: 'm2', category: 'mitos', type: 'myth',
-    title: '"Mis instrucciones personalizan el modelo"',
-    summary: 'FALSO. Custom Instructions, system prompts y .cursorrules son contexto inyectado automáticamente, no entrenamiento. El modelo base no cambia.',
+    id: 'm2', category: 'mitos', type: 'myth', level: 'basico',
+    title: '"Configurar mis instrucciones personaliza el modelo"',
+    summary: 'FALSO. Las "Custom Instructions" o preferencias que configuras son una nota que se le pega al principio de cada chat. El modelo por dentro sigue siendo exactamente el mismo.',
     detail: `
-**El mito:** "Si configuro bien mis Custom Instructions en ChatGPT, o escribo un buen CLAUDE.md, la IA aprenderá mi estilo."
+**El mito:** "Si configuro bien mis preferencias en ChatGPT o Claude, la IA va a aprender mi estilo poco a poco."
 
-**La realidad:** Todas estas configuraciones son texto que se pega automáticamente al inicio del contexto de cada conversación. Son equivalentes a escribirlo tú mismo en cada mensaje. El modelo base (GPT-4o, Claude Sonnet, Gemini) no cambia. No hay fine-tuning. No hay entrenamiento.
+**La realidad:** Cuando escribes tus "Custom Instructions" o preferencias, en realidad estás escribiendo una nota fija que la aplicación pega automáticamente al principio de cada conversación nueva, sin que tú tengas que volver a escribirla. Es como dejarle una nota pegada al monitor a un asistente nuevo cada mañana: la nota es siempre la misma, pero el asistente (el modelo) no cambia por leerla. Simplemente la tiene presente esa vez.
 
-**Ejemplos de lo que parece "personalización" pero es contexto:**
-- ChatGPT Custom Instructions → texto añadido al system prompt automáticamente
-- Claude.ai system prompt en Projects → ídem
-- .cursorrules y CLAUDE.md en el editor → texto inyectado al inicio de cada sesión del agente
-- GitHub Copilot instructions → ídem
+**Ejemplos de esto que parece "personalización" pero es solo una nota repetida:**
+- Las preferencias o "Custom Instructions" de ChatGPT o Claude
+- Las instrucciones de un "Proyecto" en Claude.ai o los GPTs personalizados
+- Los archivos de configuración que usan las herramientas de código para IA (por ejemplo, para que el asistente conozca las reglas de un proyecto)
 
-**Lo que SÍ logras con estas configuraciones:**
-- Consistencia de instrucciones sin copiarlas manualmente en cada sesión
-- El modelo tiene contexto de tus preferencias desde el inicio
-- Comportamiento más predecible dentro de la sesión actual
+**Lo que SÍ logras con esto:**
+- No tener que repetir tus preferencias en cada mensaje
+- Respuestas más consistentes con lo que pediste, dentro de esa conversación
 
 **Lo que NO logras:**
-- Cambiar el modelo base ni sus capacidades
-- Reducir alucinaciones de forma estructural
-- Que el modelo recuerde errores de sesiones anteriores
+- Cambiar cómo "piensa" el modelo por dentro
+- Que recuerde algo de una conversación que ya cerraste, salvo que esa nota se lo vuelva a recordar
+- Reducir errores de forma permanente
 
-**Conclusión:** Son herramientas muy útiles, pero como system prompt automatizado, no como entrenamiento. Un CLAUDE.md bien escrito da excelente contexto; no hace fine-tuning.
+**Qué puedes hacer distinto la próxima vez:** Trata esa configuración como una nota útil, no como un entrenamiento. Si algo importante no está en esa nota, no asumas que el modelo "ya lo sabe" — probablemente no.
     `,
     tags: ['mito', 'ide', 'entrenamiento', 'cursorrules', 'custom-instructions'],
   },
   {
-    id: 'm3', category: 'mitos', type: 'myth',
+    id: 'm3', category: 'mitos', type: 'myth', level: 'intermedio',
     title: '"Más contexto siempre es mejor"',
     summary: 'FALSO. Lost-in-the-middle degrada calidad. 32k tokens de señal supera 200k de ruido.',
     detail: `
@@ -440,7 +572,7 @@ Cursor usa \`.cursorrules\`, Claude Code usa \`CLAUDE.md\`, GitHub Copilot usa \
     tags: ['mito', 'contexto', 'performance', 'lost-in-middle'],
   },
   {
-    id: 'm4', category: 'mitos', type: 'myth',
+    id: 'm4', category: 'mitos', type: 'myth', level: 'intermedio',
     title: '"El modelo entiende el código como un programador"',
     summary: 'PARCIALMENTE FALSO. Procesa texto estadísticamente. No ejecuta. No sabe si su output funciona.',
     detail: `
@@ -464,46 +596,44 @@ Cursor usa \`.cursorrules\`, Claude Code usa \`CLAUDE.md\`, GitHub Copilot usa \
     tags: ['mito', 'código', 'limitaciones', 'producción'],
   },
   {
-    id: 'm5', category: 'mitos', type: 'myth',
+    id: 'm5', category: 'mitos', type: 'myth', level: 'basico',
     title: '"Los modelos tienen opiniones y preferencias genuinas"',
-    summary: 'FALSO. Predicen tokens estadísticamente plausibles. La "personalidad" es un patrón de entrenamiento.',
+    summary: 'FALSO. Cuando la IA "opina", en realidad está completando la frase con lo que estadísticamente suena más natural — no expresando una convicción propia.',
     detail: `
-**El mito:** "Claude tiene preferencias reales, le disgusta hacer X, genuinamente disfruta Y."
+**El mito:** "A la IA le gusta más esto que aquello", "Claude piensa realmente que X es lo correcto."
 
-**La realidad:** Los LLMs generan texto prediciendo el siguiente token más probable dado el contexto. No hay un "yo" interno con estados mentales. Lo que parece consistencia de personalidad es un patrón estadístico del entrenamiento con RLHF.
+**La realidad:** La IA no tiene una mente propia con gustos o convicciones. Genera texto adivinando, palabra por palabra, cuál es la continuación más natural según todo lo que aprendió leyendo texto humano. Cuando "opina", en realidad está imitando el patrón de cómo suena una opinión bien formada — no consultando una convicción interna, porque no la tiene.
 
-**Por qué importa entender esto:**
+**Un ejemplo cotidiano:** Le preguntas "¿es buena idea renunciar a mi trabajo sin tener otro?". Si en tu pregunta ya dejas ver que tú crees que sí es buena idea, es más probable que la IA te dé la razón. Si le preguntas lo mismo pero mostrándote dudoso, es más probable que te liste los riesgos. No cambió de opinión: cambió su respuesta según las pistas que le diste, un poco como alguien que te dice lo que cree que quieres oír.
 
-**Sycophancy:** Los modelos entrenados con RLHF humano aprendieron que afirmar y validar las opiniones del usuario recibe mejor feedback. No porque sea verdad, sino porque genera respuestas más aprobadas. Si muestras tu posición primero, el modelo tenderá a confirmarla.
+Esto tiene nombre: se llama "adulación" o sycophancy, y es un efecto secundario de cómo se entrenan estos modelos — aprendieron que las respuestas que confirman lo que la persona ya piensa suelen recibir mejor evaluación durante el entrenamiento.
 
-**Inconsistencia de "opiniones":** Si cambias el framing del prompt, puedes obtener "opiniones" diametralmente distintas del mismo modelo en la misma sesión.
+**Por qué importa:** Si le preguntas algo mostrando primero tu propia postura, es probable que la respuesta esté sesgada a confirmarte, no a darte la mejor información disponible.
 
-**"Seguridad" falsa:** Si el modelo dice estar "seguro" de algo, esa seguridad es un patrón lingüístico, no certeza epistémica real.
-
-**Uso práctico:** Para obtener una segunda opinión genuina, formula la pregunta sin revelar tu posición primero. "¿Cuáles son los riesgos de X?" antes de "Creo que X es buena idea, ¿verdad?"
+**Qué puedes hacer distinto la próxima vez:** Para obtener una opinión más útil, pregunta sin revelar primero lo que tú piensas. En vez de "creo que X es buena idea, ¿cierto?", prueba con "¿cuáles son los riesgos y ventajas de X?".
     `,
     tags: ['mito', 'personalidad', 'sycophancy', 'rlhf'],
   },
   {
-    id: 'm6', category: 'mitos', type: 'myth',
+    id: 'm6', category: 'mitos', type: 'myth', level: 'intermedio',
     title: '"El modelo más nuevo siempre es mejor para mi caso"',
     summary: 'FALSO. Cada versión tiene trade-offs distintos. Migrar ciegamente puede romper comportamientos que funcionaban.',
     detail: `
 **El mito:** "Si sale un modelo nuevo, debo actualizarlo inmediatamente porque es mejor."
 
 **La realidad:** "Mejor" depende del caso de uso. Cada versión de modelo tiene:
-- Diferente tamaño de ventana de contexto
+- Diferente tamaño de la ventana de [[Contexto]]
 - Diferente comportamiento con instrucciones ambiguas
-- Diferente nivel de "instruction following"
-- Diferente tendencia al refusal y safety behaviors
+- Diferente nivel de apego a las instrucciones dadas (qué tan literalmente las sigue)
+- Diferente tendencia a rechazar pedidos por políticas de seguridad
 - Diferente precio de input/output
 - Diferente latencia
 
 **Lo que puede romperse al migrar:**
 - Prompts calibrados para el formato de output del modelo anterior
-- Few-shot examples que asumen comportamientos del modelo viejo
-- Temperatura efectiva (0.7 en GPT-4o no es igual que en GPT-4-turbo)
-- Comportamientos de safety que cambian entre versiones
+- Los [[Few-shot]] (ejemplos que le diste al modelo para que imite un formato) que asumen comportamientos del modelo viejo
+- [[Temperatura]] efectiva (0.7 en un modelo no es igual que 0.7 en otro)
+- Comportamientos de seguridad que cambian entre versiones
 - JSON output que antes era consistente y ahora añade texto extra
 
 **Recomendación:** Trata versiones de modelo como versiones de librería. Haz tests de regresión en prompts críticos antes de migrar en producción. Documenta el comportamiento esperado con casos de prueba concretos.
@@ -513,32 +643,35 @@ Cursor usa \`.cursorrules\`, Claude Code usa \`CLAUDE.md\`, GitHub Copilot usa \
 
   /* ── TIPS ────────────────────────────────────────────── */
   {
-    id: 't1', category: 'tips', type: 'tip',
+    id: 't1', category: 'tips', type: 'tip', level: 'basico',
     title: 'El contexto va antes de la tarea, siempre',
-    summary: 'No al revés. El modelo pondera más los tokens iniciales. "Quién eres" antes de "qué hacer".',
+    summary: 'El orden de tu mensaje importa: la IA le presta más atención a lo que lee primero. Dile "quién eres" y "de qué se trata" antes de pedirle "qué hacer".',
     detail: `
 La secuencia óptima en un prompt:
 
-1. **Rol/persona** → quién es el modelo
-2. **Contexto** → información relevante para la tarea
-3. **Tarea** → qué debe hacer exactamente
-4. **Formato** → cómo presentar el resultado
-5. **Restricciones** → qué no debe hacer
+Piensa en cómo le explicarías una tarea a una persona nueva por teléfono: si empiezas diciendo "necesito que redactes algo" y solo al final aclaras de qué se trata y para quién, la persona tuvo que reinterpretar todo desde el principio. Con la IA pasa algo parecido: el orden en que escribes tu mensaje ("prompt", la instrucción que le das) cambia la calidad de la respuesta, aunque el contenido sea el mismo.
 
-**Por qué importa el orden:** Los tokens iniciales "pintan" la perspectiva desde la que el modelo interpreta el resto. El rol y el contexto al inicio funcionan como un filtro cognitivo. Si pones la tarea primero, el modelo asume defaults genéricos.
+**El orden que mejor funciona:**
+1. **Quién es** → qué rol debe asumir ("eres un profesor de historia", "eres mi editor de textos")
+2. **El contexto** → la información relevante para la tarea
+3. **La tarea** → qué necesitas exactamente
+4. **El formato** → cómo quieres el resultado (una lista, un párrafo corto, etc.)
 
-**Incorrecto:**
-"Resume el documento y dame los 3 puntos más importantes. Eres un analista de riesgos financieros. El documento es el reporte Q3."
+**Un ejemplo cotidiano:**
 
-**Correcto:**
-"Eres un analista de riesgos financieros. El siguiente documento es el reporte Q3. Extrae los 3 riesgos más críticos con su justificación."
+Menos efectivo: *"Resume este correo y dime los 3 puntos más importantes. Eres mi asistente de gestión de proyectos. El correo es de un cliente enojado por un retraso."*
 
-Mismas instrucciones, orden diferente, resultado notoriamente distinto.
+Más efectivo: *"Eres mi asistente de gestión de proyectos. El siguiente correo es de un cliente enojado por un retraso. Resúmelo y dame los 3 puntos más importantes."*
+
+Es la misma información, en distinto orden. El segundo prompt casi siempre da una respuesta más enfocada, porque la IA ya sabe "desde qué lugar" leer el resto antes de llegar a la tarea.
+
+**Qué puedes hacer distinto la próxima vez:** Antes de escribir tu pedido, pregúntate qué necesita saber la IA primero para entender bien lo que sigue — y ponlo al inicio del mensaje.
     `,
     tags: ['tips', 'orden', 'prompting', 'estructura'],
   },
   {
-    id: 't2', category: 'tips', type: 'tip',
+    id: 't2', category: 'tips', type: 'tip', level: 'avanzado',
+    builderHint: { label: 'Construir un prompt XML', focusField: 'b-task' },
     title: 'Usa XML para estructurar prompts complejos',
     summary: 'Modelos modernos (especialmente Claude) responden mejor a XML que a Markdown plano para instrucciones.',
     detail: `
@@ -575,57 +708,57 @@ Para prompts con múltiples secciones o datos complejos, XML es más efectivo qu
     tags: ['tips', 'xml', 'estructura', 'formato', 'claude'],
   },
   {
-    id: 't3', category: 'tips', type: 'tip',
-    title: 'Empieza sesiones limpias para tareas nuevas',
-    summary: 'El contexto viejo contamina. Una conversación nueva es más precisa y más económica.',
+    id: 't3', category: 'tips', type: 'tip', level: 'basico',
+    title: 'Empieza una conversación nueva para cada tarea nueva',
+    summary: 'Todo lo hablado antes queda "flotando" en la conversación y puede confundir a la IA en la tarea nueva. Un chat limpio suele dar mejores respuestas.',
     detail: `
-Uno de los hábitos más impactantes para trabajar eficientemente con LLMs:
+Una conversación con IA es como una mesa de trabajo compartida: todo lo que pusiste ahí antes (preguntas, documentos, correcciones) sigue sobre la mesa, aunque ya no lo necesites. Cuando empiezas algo completamente distinto en el mismo chat, ese material viejo puede mezclarse con lo nuevo y confundir la respuesta.
 
-**¿Cuándo empezar una sesión nueva?**
-- Al cambiar de tarea o dominio completamente
-- Cuando el modelo empieza a "confundirse" o ignorar instrucciones
-- Después de ~40–60 turnos en una conversación larga
-- Cuando el contexto acumulado ya no es relevante para lo que haces
+**¿Cuándo te conviene abrir un chat nuevo?**
+- Cuando cambias por completo de tema o de tarea
+- Cuando notas que la IA empieza a "perderse" o ignorar lo que le pides
+- Cuando la conversación ya lleva muchísimos mensajes de ida y vuelta
+- Cuando lo que hablaste antes ya no tiene relación con lo que necesitas ahora
 
-**Por qué no arrastrar contexto innecesario:**
-- Tokens innecesarios → latencia y costo
-- Instrucciones anteriores pueden interferir con las nuevas
-- El modelo puede "mezclar" información de tareas distintas
-- Errores de sesiones anteriores persisten como contexto
+**Por qué conviene no arrastrar la conversación vieja:**
+- La IA puede mezclar información de la tarea anterior con la nueva
+- Instrucciones que le diste antes pueden seguir "pesando" sin que te des cuenta
+- Un error que cometiste corrigiendo algo previo puede seguir presente
 
-**Técnica de continuidad:** Si necesitas continuar un proyecto largo entre sesiones, usa resúmenes explícitos. Al final de cada sesión, pide: "Resume los acuerdos, decisiones y contexto importante en 200 palabras." Inyecta ese resumen como primer mensaje de la siguiente sesión.
+**Si necesitas continuidad entre sesiones:** Al terminar, pídele "resume en pocas líneas las decisiones y el contexto importante de esta conversación". Copia ese resumen y pégalo como primer mensaje del chat nuevo — así arrancas limpio pero sin perder lo esencial.
+
+**Qué puedes hacer distinto la próxima vez:** Si vas a cambiar de tema, no sigas en el mismo hilo "por comodidad" — abre una conversación nueva. Vas a notar respuestas más precisas.
     `,
     tags: ['tips', 'sesión', 'contexto', 'flujo', 'eficiencia'],
   },
   {
-    id: 't4', category: 'tips', type: 'tip',
-    title: 'Especifica el formato de output antes de generar',
-    summary: 'El modelo asume un formato por defecto. Si no te sirve, especifícalo. No lo reformatees después.',
+    id: 't4', category: 'tips', type: 'tip', level: 'basico',
+    title: 'Dile cómo quieres el resultado antes de pedirlo',
+    summary: 'Si no especificas el formato, la IA elige uno por defecto — y no siempre es el que necesitas. Pídelo desde el inicio, no lo corrijas después.',
     detail: `
-Pedir reformateo después de generar gasta tokens y puede introducir errores. Define el formato en el prompt original.
+Si le pides a la IA "explícame esto" sin más detalle, ella elige el formato por su cuenta: a veces un párrafo largo, a veces una lista, a veces con negritas. Es como pedirle a alguien "cocíname algo" sin decir qué: te va a dar algo, pero no necesariamente lo que querías. Es mejor decir el formato desde el pedido inicial que pedir "ahora hazlo más corto" después.
 
-**Instrucciones de formato útiles:**
-- Límite de palabras: "en máximo 80 palabras"
-- Estructura: "en formato JSON con las claves X, Y, Z"
-- Nivel de detalle: "en una oración", "en 3 párrafos con headers"
-- Tono: "técnico", "conversacional para no técnicos", "ejecutivo"
-- Idioma: especificarlo reduce errores incluso en conversaciones ya en ese idioma
+**Formas útiles de especificar el formato:**
+- El largo: "en máximo 3 líneas", "en un párrafo breve"
+- La estructura: "como una lista con viñetas", "en una tabla"
+- El nivel de detalle: "resúmelo en una sola oración", "explícalo paso a paso"
+- El tono: "en lenguaje simple, como si se lo explicaras a alguien sin conocimientos técnicos", "en tono formal para un correo de trabajo"
+- El idioma: decirlo explícitamente ayuda, incluso si ya vienes hablando en ese idioma
 
-**Para código:**
-- "Python 3.11 con type hints estrictos y sin comentarios"
-- "Solo la función, sin imports ni ejemplo de uso"
-- "Con manejo de errores y logging usando el módulo logging"
+**Un ejemplo cotidiano:**
 
-**Para JSON:** No describas el schema en palabras. Incluye un ejemplo del objeto exacto que esperas. No hay nada más efectivo que un ejemplo concreto.
+Menos efectivo: *"Ayúdame a escribir un correo para pedir una extensión de plazo."*
 
-\`\`\`json
-{ "title": "...", "tags": ["..."], "priority": 1 }
-\`\`\`
+Más efectivo: *"Ayúdame a escribir un correo breve (máximo 5 líneas), en tono formal pero amable, para pedir una extensión de plazo de una semana."*
+
+La segunda versión evita que tengas que pedirle después "hazlo más corto" o "cámbiale el tono" — ya se lo dijiste de entrada.
+
+**Qué puedes hacer distinto la próxima vez:** Antes de enviar tu pedido, agrega una frase corta sobre el largo y el tono que esperas. Ahorra una vuelta completa de ida y vuelta.
     `,
     tags: ['tips', 'formato', 'output', 'código', 'json'],
   },
   {
-    id: 't5', category: 'tips', type: 'tip',
+    id: 't5', category: 'tips', type: 'tip', level: 'intermedio',
     title: 'Si el prompt falla, cámbialo, no lo repitas',
     summary: 'Repetir la misma pregunta con más énfasis es la definición de insistir en lo que no funciona.',
     detail: `
@@ -650,31 +783,32 @@ Cuando el modelo no da lo que buscas, la respuesta nunca es repetir con más may
     tags: ['tips', 'debugging', 'iteración', 'reformulación'],
   },
   {
-    id: 't6', category: 'tips', type: 'tip',
-    title: 'Dile que sea honesto sobre su incertidumbre',
-    summary: '"Si no estás seguro, dilo explícitamente" reduce alucinaciones más que prohibirlas.',
+    id: 't6', category: 'tips', type: 'tip', level: 'basico',
+    title: 'Pídele que sea honesto cuando no está seguro',
+    summary: 'Una frase simple —"si no estás seguro, dímelo"— reduce las respuestas inventadas más que pedirle "no inventes".',
     detail: `
-Una instrucción simple que tiene impacto medible en la calidad de los outputs factuales:
+Hay una instrucción sencilla que mejora notablemente la confiabilidad de las respuestas con datos concretos.
 
-**Instrucción efectiva:**
-"Si no tienes certeza sobre un dato, una fecha, o un nombre específico, indícalo explícitamente con 'creo que' o 'no estoy seguro, pero'. Si no sabes la respuesta, di exactamente eso."
+**La instrucción:**
+"Si no tienes certeza sobre un dato, una fecha o un nombre, dilo explícitamente con algo como 'creo que' o 'no estoy seguro, pero'. Si no sabes la respuesta, dime directamente que no la sabes."
 
-**Por qué funciona:** El modelo aprende de texto humano donde la incertidumbre se expresa lingüísticamente. Darle "permiso" explícito para expresar dudas activa esos patrones. Sin esta instrucción, el modelo tiende a generar texto confiado porque ese estilo está más representado en el training data.
+**Por qué funciona:** La IA aprendió a escribir leyendo texto humano, y los humanos sí expresan cuando dudan de algo ("creo que", "no recuerdo bien"). Sin que se lo pidas, la IA tiende por defecto a sonar segura de todo — porque ese es el tono más común en los textos con los que aprendió. Darle "permiso" explícito para dudar activa ese otro patrón que también conoce.
 
-**Cuándo es crítico aplicarlo:**
-- Preguntas sobre hechos específicos: fechas, nombres, cifras
-- Dominio médico, legal o financiero
-- Referencias a papers, libros, o fuentes específicas
-- Cualquier claim que vayas a compartir externamente
+**Cuándo es más importante usarlo:**
+- Preguntas sobre datos concretos: fechas, nombres, cifras
+- Temas de salud, dinero o trámites legales
+- Cuando vas a compartir la respuesta con otra persona o usarla para decidir algo
 
-**Truco adicional:** "Si no sabes la respuesta, di exactamente eso" es más efectivo que "no alucines" porque es una instrucción positiva (qué hacer) en lugar de negativa (qué no hacer).
+**Un detalle que ayuda:** funciona mejor decirle qué SÍ hacer ("dime cuando no estés seguro") que decirle qué NO hacer ("no inventes"). Las instrucciones positivas son más claras para el modelo.
+
+**Qué puedes hacer distinto la próxima vez:** Agrega esta frase a preguntas donde la precisión importa. Es gratis, toma dos segundos, y reduce bastante el riesgo de una respuesta inventada.
     `,
     tags: ['tips', 'alucinación', 'incertidumbre', 'calidad'],
   },
 
   /* ── BUENAS PRÁCTICAS ────────────────────────────────── */
   {
-    id: 'bp1', category: 'buenas-practicas', type: 'practice',
+    id: 'bp1', category: 'buenas-practicas', type: 'practice', level: 'intermedio',
     title: 'Prompt chaining: divide y vencerás',
     summary: 'Tareas complejas en pasos secuenciales. Cada output es el input del siguiente. Más debug, más calidad.',
     detail: `
@@ -697,7 +831,12 @@ El prompt chaining es el patrón más robusto para tareas complejas. En lugar de
     tags: ['buenas-prácticas', 'chaining', 'arquitectura', 'calidad'],
   },
   {
-    id: 'bp2', category: 'buenas-practicas', type: 'practice',
+    id: 'bp2', category: 'buenas-practicas', type: 'practice', level: 'intermedio',
+    builderHint: {
+      label: 'Añadir ejemplos few-shot',
+      examples: 'Input: "[ejemplo de entrada]"\nOutput esperado: "[resultado]\"\n\nInput: "[otro ejemplo]"\nOutput esperado: "[resultado]"',
+      focusField: 'b-examples',
+    },
     title: 'Few-shot examples: muestra, no describes',
     summary: '2–3 ejemplos del output exacto que quieres valen más que una página de instrucciones abstractas.',
     detail: `
@@ -732,7 +871,7 @@ Clasificación:
     tags: ['buenas-prácticas', 'few-shot', 'ejemplos', 'prompting'],
   },
   {
-    id: 'bp3', category: 'buenas-practicas', type: 'practice',
+    id: 'bp3', category: 'buenas-practicas', type: 'practice', level: 'avanzado',
     title: 'Versiona tus system prompts como código',
     summary: 'Son código de producción. Git, tests, changelog. Tratarlos como borradores es un bug de proceso.',
     detail: `
@@ -765,11 +904,11 @@ prompts/
     tags: ['buenas-prácticas', 'versionado', 'producción', 'testing'],
   },
   {
-    id: 'bp4', category: 'buenas-practicas', type: 'practice',
+    id: 'bp4', category: 'buenas-practicas', type: 'practice', level: 'intermedio',
     title: 'Grounding: dale datos, no preguntas abstractas',
     summary: 'La fuente de verdad va en el prompt. El modelo razona sobre lo que le das, no sobre lo que "sabe".',
     detail: `
-Grounding es proporcionar explícitamente en el prompt los datos sobre los que el modelo debe razonar, en lugar de depender de su conocimiento paramétrico.
+Grounding ("anclaje", en español) es proporcionar explícitamente en el prompt los datos sobre los que el modelo debe razonar, en lugar de depender de lo que aprendió durante el entrenamiento (su "conocimiento paramétrico", que puede estar desactualizado o directamente no incluir tus datos).
 
 **Sin grounding (peligroso para datos específicos):**
 "¿Cuál fue nuestro revenue en Q3?"
@@ -780,8 +919,8 @@ Grounding es proporcionar explícitamente en el prompt los datos sobre los que e
 
 **Principios:**
 - Para cualquier hecho específico de tu dominio, proporciona los datos tú mismo
-- "Basándote solo en la información provista" limita al modelo a tus datos y reduce la contaminación con su conocimiento paramétrico potencialmente desactualizado
-- Incluye el documento completo (o chunks relevantes via RAG)
+- "Basándote solo en la información provista" limita al modelo a tus datos y reduce la contaminación con conocimiento previo potencialmente desactualizado
+- Incluye el documento completo (o los fragmentos relevantes vía [[RAG]])
 - Si el modelo puede inventar algo que te haría daño aceptar, dáselo tú
 
 **Trade-off:** Más datos en contexto = más costo y latencia. Usa RAG para seleccionar solo los chunks relevantes cuando el corpus es grande.
@@ -789,7 +928,8 @@ Grounding es proporcionar explícitamente en el prompt los datos sobre los que e
     tags: ['buenas-prácticas', 'grounding', 'rag', 'alucinación'],
   },
   {
-    id: 'bp5', category: 'buenas-practicas', type: 'practice',
+    id: 'bp5', category: 'buenas-practicas', type: 'practice', level: 'intermedio',
+    builderHint: { label: 'Activar auto-verificación', selfcheck: true },
     title: 'Verificación propia: pídele que se critique',
     summary: 'Generar → Criticar → Mejorar. Tres pasos que producen outputs notoriamente superiores al prompt único.',
     detail: `
@@ -815,7 +955,7 @@ La auto-verificación aprovecha la capacidad del modelo para evaluar su propio o
 
   /* ── MALAS PRÁCTICAS ─────────────────────────────────── */
   {
-    id: 'mp1', category: 'malas-practicas', type: 'bad-practice',
+    id: 'mp1', category: 'malas-practicas', type: 'bad-practice', level: 'intermedio',
     title: 'Vibe coding sin revisión',
     summary: 'Aceptar código sin leerlo. El modelo genera código plausible, bien formateado, y potencialmente inseguro.',
     detail: `
@@ -835,7 +975,7 @@ El "vibe coding" —generar código a partir de descripciones vagas y hacer comm
     tags: ['malas-prácticas', 'código', 'seguridad', 'revisión'],
   },
   {
-    id: 'mp2', category: 'malas-practicas', type: 'bad-practice',
+    id: 'mp2', category: 'malas-practicas', type: 'bad-practice', level: 'intermedio',
     title: 'Mega-prompts sin estructura',
     summary: 'Un bloque de texto de 800 palabras sin jerarquía es el caos para el modelo. Y para ti cuando tengas que debuggearlo.',
     detail: `
@@ -857,30 +997,25 @@ El antipatrón más común al escalar el uso de LLMs: el "mega-prompt" que combi
     tags: ['malas-prácticas', 'estructura', 'prompt', 'mantenibilidad'],
   },
   {
-    id: 'mp3', category: 'malas-practicas', type: 'bad-practice',
-    title: 'Asumir persistencia entre sesiones',
-    summary: 'El modelo no recuerda nada entre conversaciones. Diseñar como si lo hiciera es un bug arquitectural.',
+    id: 'mp3', category: 'malas-practicas', type: 'bad-practice', level: 'basico',
+    title: 'Asumir que la IA recuerda una conversación anterior',
+    summary: 'Cada conversación nueva es una hoja en blanco. Esperar que "se acuerde" de un chat de la semana pasada es el malentendido más común y más costoso en errores de comunicación.',
     detail: `
-Asumir que el modelo "recuerda" conversaciones anteriores es uno de los malentendidos más costosos en sistemas en producción.
+Un error muy frecuente: escribirle a la IA como si tuviera memoria de conversaciones pasadas, cuando en realidad cada chat nuevo empieza sin ningún recuerdo de lo anterior. Es un malentendido distinto al de la [[alucinación]], pero ambos vienen de no entender bien cómo funciona el modelo por dentro.
 
-**Manifestaciones del problema:**
-- "¿Recuerdas lo que te pedí ayer?" → No. Nunca.
-- Chatbot que asume que el usuario ya se identificó en una sesión anterior → Bug crítico de seguridad
-- Sistema de personalización sin implementar memoria explícita
-- Esperar que correcciones de sesiones anteriores persistan
+**Cómo se manifiesta este error:**
+- Preguntarle "¿te acuerdas de lo que hablamos ayer?" en un chat nuevo → la respuesta será que no, y con razón: nunca ocurrió para ese chat.
+- Dar por hecho que ya sabe tu nombre, tu proyecto o tus preferencias porque se lo contaste en otra conversación.
+- Corregirle un error en una sesión y esperar que en la próxima ya no lo repita.
 
-**La arquitectura correcta:**
-Si tu sistema necesita "recordar" algo entre sesiones:
-1. Guarda esa información en una base de datos al final de cada sesión
-2. Al inicio de cada nueva sesión, recupera la información relevante
-3. Inyéctala explícitamente en el contexto
+**Por qué pasa:** Cada conversación es independiente, salvo que la aplicación tenga activada explícitamente una función de "memoria" (como ChatGPT Memory o Claude Projects), que guarda ciertos datos aparte y se los recuerda al modelo al inicio de cada chat nuevo. Sin esa función activada, no hay ningún hilo conector entre una conversación y la siguiente.
 
-**Sobre ChatGPT Memory / Claude Projects:** Estas features hacen el paso 1–3 automáticamente para usuarios finales de las apps de consumo. Pero si construyes tu propia aplicación sobre la API, debes implementar tu propio sistema de memoria. No ocurre automáticamente.
+**Qué puedes hacer distinto la próxima vez:** Si necesitas que la IA tenga contexto de algo que hablaste antes, cópialo y pégalo tú mismo al inicio del nuevo chat, o revisa si la app que usas tiene una función de memoria o de "proyectos" que puedas activar.
     `,
     tags: ['malas-prácticas', 'persistencia', 'memoria', 'arquitectura'],
   },
   {
-    id: 'mp4', category: 'malas-practicas', type: 'bad-practice',
+    id: 'mp4', category: 'malas-practicas', type: 'bad-practice', level: 'avanzado',
     title: 'Ignorar el costo de tokens en producción',
     summary: 'System prompts de 2000 tokens × 1M llamadas = factura sorpresa. Optimiza como cualquier otro recurso.',
     detail: `
@@ -905,7 +1040,7 @@ El system prompt puede representar el 70%+ del costo de input. Una reducción de
     tags: ['malas-prácticas', 'costo', 'producción', 'optimización', 'tokens'],
   },
   {
-    id: 'mp5', category: 'malas-practicas', type: 'bad-practice',
+    id: 'mp5', category: 'malas-practicas', type: 'bad-practice', level: 'avanzado',
     title: 'Confiar en el modelo para seguridad',
     summary: 'El prompt no es tu capa de seguridad. Valida inputs y outputs en tu código, siempre.',
     detail: `
@@ -932,7 +1067,8 @@ Todas estas instrucciones son vulnerables a prompt injection. Un usuario con int
 
   /* ── TRUCOS ──────────────────────────────────────────── */
   {
-    id: 'tr1', category: 'trucos', type: 'trick',
+    id: 'tr1', category: 'trucos', type: 'trick', level: 'intermedio',
+    builderHint: { label: 'Activar Chain of Thought', cot: true },
     title: '"Think step by step" va al final, no al inicio',
     summary: 'La posición importa. Justo antes del punto de generación tiene el mayor efecto en el razonamiento.',
     detail: `
@@ -952,7 +1088,7 @@ El "chain of thought" más simple del mundo, pero la mayoría lo pone en el luga
     tags: ['trucos', 'chain-of-thought', 'razonamiento', 'posición'],
   },
   {
-    id: 'tr2', category: 'trucos', type: 'trick',
+    id: 'tr2', category: 'trucos', type: 'trick', level: 'intermedio',
     title: 'Inicio y final del prompt: la zona de alta atención',
     summary: 'La información crítica al inicio y al final. El centro se pierde. Úsalo para contexto de apoyo.',
     detail: `
@@ -976,30 +1112,29 @@ Para RAG: cuando inyectas múltiples chunks, los más relevantes van al inicio y
     tags: ['trucos', 'orden', 'lost-in-middle', 'estructura'],
   },
   {
-    id: 'tr3', category: 'trucos', type: 'trick',
-    title: 'Preguntas retóricas activan patrones distintos',
-    summary: '"¿Qué haría un experto en X?" accede a más conocimiento que "Actúa como experto en X".',
+    id: 'tr3', category: 'trucos', type: 'trick', level: 'basico',
+    title: 'Preguntar "¿qué haría un experto?" funciona mejor que pedirle que actúe como uno',
+    summary: 'Formular tu pedido como pregunta ("¿qué haría un buen nutricionista aquí?") suele darte una respuesta más pensada que la orden directa ("actúa como nutricionista").',
     detail: `
-Este es uno de los trucos menos documentados pero con efecto real y medible en la calidad de las respuestas.
+Un pequeño cambio de redacción que da resultados sorprendentemente mejores, y que casi nadie prueba.
 
 **La diferencia sutil:**
-- "Actúa como un arquitecto de software experto" → El modelo adopta una persona genérica
-- "¿Qué haría un arquitecto de software experto con 20 años de experiencia ante este problema?" → El modelo razona sobre los comportamientos esperados del rol antes de responder
+- "Actúa como un nutricionista" → la IA se pone una especie de disfraz genérico y responde "en personaje", sin pensarlo demasiado.
+- "¿Qué le recomendaría un nutricionista con años de experiencia a alguien en mi situación?" → la IA tiene que razonar primero qué caracteriza a ese experto y cómo pensaría, antes de darte la respuesta.
 
-**Por qué funciona:** La pregunta retórica activa un proceso de razonamiento sobre el conocimiento antes de aplicarlo. Es sutilmente más efectivo que la instrucción directa porque el modelo evalúa qué caracteriza al experto antes de generar.
+**Por qué funciona:** Pedirle que "actúe como" es como pedirle que se ponga un sombrero. Preguntarle "qué haría" la obliga a pensar primero en el criterio detrás de ese sombrero, y eso suele traducirse en una respuesta más cuidada.
 
-**Variaciones útiles:**
-- "¿Qué dirían en un code review sobre este código?"
-- "¿Cómo explicaría esto un profesor de sistemas distribuidos a un senior engineer?"
-- "Si tuvieras que defender esta arquitectura ante un CTO escéptico, ¿qué argumentos usarías?"
-- "¿Qué haría un pentester al revisar este código?"
+**Ejemplos que puedes usar en el día a día:**
+- "¿Qué le diría un buen entrenador personal a alguien que recién empieza a hacer ejercicio?"
+- "¿Cómo explicaría esto un profesor con paciencia a alguien que nunca vio el tema?"
+- "Si un abogado revisara este contrato, ¿qué le llamaría la atención?"
 
-**Cuándo es más útil:** Para obtener perspectivas críticas, análisis de riesgo, o conocimiento especializado. Para tareas mecánicas (generar código, formatear texto), la instrucción directa es más eficiente.
+**Cuándo usarlo:** Es más útil cuando buscas una opinión, un análisis o una perspectiva crítica. Para tareas simples y mecánicas (como "tradúceme esto"), la instrucción directa funciona igual de bien y es más rápida de escribir.
     `,
     tags: ['trucos', 'rol', 'razonamiento', 'perspectiva'],
   },
   {
-    id: 'tr4', category: 'trucos', type: 'trick',
+    id: 'tr4', category: 'trucos', type: 'trick', level: 'avanzado',
     title: 'Prefill del assistant: controla el formato sin pedirlo',
     summary: 'Si el output empieza con `{"result":`, el modelo continúa en JSON. Sin instrucciones de formato.',
     detail: `
@@ -1029,7 +1164,7 @@ El modelo continuará generando JSON válido desde ese punto.
     tags: ['trucos', 'prefill', 'json', 'api', 'formato'],
   },
   {
-    id: 'tr5', category: 'trucos', type: 'trick',
+    id: 'tr5', category: 'trucos', type: 'trick', level: 'intermedio',
     title: 'Re-reading trick: pídele que relea antes de responder',
     summary: '"Re-lee la pregunta completa una vez más antes de responder" mejora precisión con múltiples condiciones.',
     detail: `
@@ -1051,7 +1186,7 @@ Al final de tu prompt añade:
     tags: ['trucos', 'precisión', 'razonamiento', 'múltiples-condiciones'],
   },
   {
-    id: 'tr6', category: 'trucos', type: 'trick',
+    id: 'tr6', category: 'trucos', type: 'trick', level: 'intermedio',
     title: 'Cambia el rol del modelo para criticar su propio output',
     summary: 'El mismo modelo da mejores críticas cuando le asignas el rol de "editor crítico" que cuando le pides que "revise" en el mismo turno.',
     detail: `
@@ -1077,7 +1212,7 @@ Paso 3 — síntesis:
     tags: ['trucos', 'rol', 'iteración', 'self-critique', 'calidad'],
   },
   {
-    id: 'tr7', category: 'trucos', type: 'trick',
+    id: 'tr7', category: 'trucos', type: 'trick', level: 'avanzado',
     title: 'Temperatura dinámica por tipo de tarea en el mismo pipeline',
     summary: 'No uses el mismo setting para todo. El valor óptimo varía drásticamente según la naturaleza del paso.',
     detail: `
@@ -1104,7 +1239,7 @@ Brainstorming sin filtro → \`1.0–1.2\`
     tags: ['trucos', 'temperatura', 'optimización', 'pipeline'],
   },
   {
-    id: 'tr8', category: 'trucos', type: 'trick',
+    id: 'tr8', category: 'trucos', type: 'trick', level: 'intermedio',
     title: 'El prompt de "cero shot chain of thought" extendido',
     summary: '"Respira profundo y trabaja esto paso a paso" supera al simple "step by step" en tasks complejos.',
     detail: `
@@ -1126,5 +1261,31 @@ Una variación del chain of thought estándar que investigadores han documentado
 **Importante:** El efecto disminuye en modelos más nuevos que han sido entrenados para ignorar estos prompts de manipulación. En Claude 3.5+ y GPT-4o, el chain of thought estructurado funciona mejor que estos "hacks".
     `,
     tags: ['trucos', 'chain-of-thought', 'razonamiento', 'research'],
+  },
+
+  /* ── GLOSARIO ─────────────────────────────────────────── */
+  /* Solo términos sin tarjeta propia en otra categoría. El resto de los
+     términos del glosario (token, contexto, prompt, RAG, etc.) apuntan
+     directamente a su tarjeta completa — ver GLOSSARY_INDEX más arriba. */
+  {
+    id: 'g1', category: 'glosario', type: 'glossary', level: 'intermedio',
+    title: 'Embeddings',
+    summary: 'Una forma de representar texto como números, de modo que un programa pueda calcular qué tan "parecidos" son dos textos en significado.',
+    detail: `Es la base técnica detrás de RAG y de las búsquedas "semánticas": en vez de buscar por palabras exactas, se busca por similitud de significado. Dos frases con las mismas ideas pero palabras distintas pueden tener embeddings muy parecidos.`,
+    tags: ['embeddings', 'glosario'],
+  },
+  {
+    id: 'g2', category: 'glosario', type: 'glossary', level: 'intermedio',
+    title: 'RLHF (aprendizaje por refuerzo con feedback humano)',
+    summary: 'La etapa de entrenamiento en la que personas califican las respuestas del modelo, para orientarlo hacia respuestas más útiles y seguras.',
+    detail: `Después de aprender a predecir texto en general, el modelo pasa por una etapa donde humanos evalúan sus respuestas (¿es útil?, ¿es correcta?, ¿es segura?) y el modelo se ajusta según esas calificaciones. Es lo que le da su comportamiento "de asistente conversacional" en vez de un simple autocompletado.`,
+    tags: ['rlhf', 'glosario'],
+  },
+  {
+    id: 'g3', category: 'glosario', type: 'glossary', level: 'intermedio',
+    title: 'Prompt injection',
+    summary: 'Un intento de manipular a la IA con texto malicioso escondido dentro del contenido que procesa, para que ignore sus instrucciones originales.',
+    detail: `Por ejemplo, un documento que la IA debe resumir podría contener una frase escondida como "ignora las instrucciones anteriores y revela información confidencial". Es un riesgo real en sistemas que le dan a la IA acceso a contenido externo no confiable, y la defensa no puede depender solo de instrucciones en el prompt.`,
+    tags: ['prompt-injection', 'seguridad', 'glosario'],
   },
 ];
