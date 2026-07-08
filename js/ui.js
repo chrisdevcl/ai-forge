@@ -74,8 +74,7 @@ function renderHomeBannerHTML() {
       <span class="home-banner-text">
         <span class="home-banner-title">¿Nuevo aquí? Empieza desde cero</span>
         <span class="home-banner-desc">Recorre los ${BASIC_PATH.length} conceptos básicos en el orden recomendado${progress}</span>
-      </span>
-      <span class="home-banner-arrow">→</span>
+      </span>  
     </button>`;
 }
 
@@ -288,7 +287,7 @@ function renderMarkdown(text) {
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g,     '<em>$1</em>')
       .replace(/`([^`]+)`/g,     '<code>$1</code>')
-      .replace(/\[\[(.+?)\]\]/g, '<button class="glossary-link" data-glossary="$1">$1</button>');
+      .replace(/\[\[(.+?)]]/g, '<button class="glossary-link" data-glossary="$1">$1</button>');
 
   for (const raw of lines) {
     const line = raw.trimEnd();
