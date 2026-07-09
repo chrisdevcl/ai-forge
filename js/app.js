@@ -27,7 +27,7 @@ const state = {
   openCardId:     null,   // card currently shown in modal (for permalink)
   builder: {
     role: '', context: '', task: '', restrictions: '', examples: '',
-    format: '', tone: '', model: 'claude-sonnet-4',
+    format: '', tone: '', model: 'claude-sonnet-5',
     cot: false, selfcheck: false,
   },
 };
@@ -435,7 +435,6 @@ async function init() {
         _modalCards = GLOSSARY_INDEX.map(entry => CARDS.find(c => c.id === entry.cardId)).filter(Boolean);
         openModalAtIndex(_modalCards.findIndex(c => c.id === card.id));
       }
-      return;
     }
   });
 

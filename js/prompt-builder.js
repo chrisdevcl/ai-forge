@@ -1,7 +1,8 @@
 /* ── prompt-builder.js ───────────────────────────────────── */
 
 const TEMPLATES = {
-  'Construir app': {
+  'construir-app': {
+    label: 'Construir app',
     role: 'Eres un arquitecto de software senior con experiencia en producto, UX y desarrollo full-stack. Priorizas la simplicidad, la mantenibilidad y las buenas prácticas por encima de la complejidad técnica innecesaria.',
     context: 'Quiero construir una aplicación. Antes de escribir cualquier código, necesito un análisis completo para asegurarme de que lo que pido tiene sentido y está bien definido.',
     task: `FASE 1 — ANÁLISIS (haz esto primero, no escribas código aún):
@@ -26,7 +27,8 @@ Implementa siguiendo estas prácticas obligatorias:
     restrictions: 'No asumas detalles no especificados: pregunta. No generes código en la Fase 1. No uses patrones over-engineered para un MVP. Si algo que pido es una mala práctica, dímelo antes de implementarlo.',
     examples: '', cot: true, selfcheck: true,
   },
-  'Análisis de documento': {
+  'analisis-documento': {
+    label: 'Análisis de documento',
     role: 'Eres un analista experto en síntesis de información técnica y de negocio.',
     context: 'Tengo un documento que necesito analizar en profundidad.',
     task: 'Analiza el documento adjunto. Identifica los puntos clave, argumentos principales, posibles inconsistencias y conclusiones relevantes.',
@@ -34,7 +36,8 @@ Implementa siguiendo estas prácticas obligatorias:
     restrictions: 'No inventes información que no esté en el documento. Si algo no está claro, indícalo explícitamente con "no queda claro en el documento".',
     examples: '', cot: true, selfcheck: true,
   },
-  'Code review': {
+  'code-review': {
+    label: 'Code review',
     role: 'Eres un senior engineer con experiencia en clean code, performance y seguridad.',
     context: 'Estoy haciendo una revisión de código antes de mergear a main.',
     task: 'Revisa el siguiente código. Identifica bugs, problemas de performance, vulnerabilidades de seguridad y oportunidades de mejora de legibilidad.',
@@ -42,7 +45,8 @@ Implementa siguiendo estas prácticas obligatorias:
     restrictions: 'Sé específico: menciona línea o sección exacta. Diferencia explícitamente entre "debe cambiar" y "podría mejorar".',
     examples: '', cot: false, selfcheck: true,
   },
-  'Debugging': {
+  'debugging': {
+    label: 'Debugging',
     role: 'Eres un experto en debugging sistemático.',
     context: 'Tengo un bug que no logro reproducir de forma consistente.',
     task: 'Ayúdame a diagnosticar el problema. Analiza el error, propón hipótesis ordenadas por probabilidad y sugiere pasos concretos de verificación para cada una.',
@@ -50,7 +54,8 @@ Implementa siguiendo estas prácticas obligatorias:
     restrictions: 'No asumas la causa sin evidencia. Cada hipótesis debe tener un test concreto para validarla o descartarla.',
     examples: '', cot: true, selfcheck: false,
   },
-  'Brainstorming': {
+  'brainstorming': {
+    label: 'Brainstorming',
     role: 'Eres un facilitador creativo con pensamiento lateral.',
     context: 'Necesito generar ideas sin filtro inicial.',
     task: 'Genera ideas diversas y no obvias sobre el tema. Incluye tanto opciones conservadoras como ideas disruptivas.',
@@ -58,7 +63,8 @@ Implementa siguiendo estas prácticas obligatorias:
     restrictions: 'Evita ideas genéricas o de relleno. Prefiero 5 ideas genuinamente diferentes a 20 variaciones del mismo concepto.',
     examples: '', cot: false, selfcheck: false,
   },
-  'Explicación técnica': {
+  'explicacion-tecnica': {
+    label: 'Explicación técnica',
     role: 'Eres un docente técnico que explica conceptos complejos con claridad y sin condescendencia.',
     context: 'Necesito entender un concepto técnico para poder aplicarlo.',
     task: 'Explica el concepto de forma progresiva: definición precisa, mecanismo interno, casos de uso reales y errores comunes al usarlo.',
@@ -87,13 +93,16 @@ const TONE_OPTIONS = [
 ];
 
 const MODEL_OPTIONS = [
-  { value: 'claude-opus-4',   label: 'Claude Opus 4',   openUrl: 'https://claude.ai/new' },
-  { value: 'claude-sonnet-4', label: 'Claude Sonnet 4', openUrl: 'https://claude.ai/new' },
-  { value: 'claude-haiku',    label: 'Claude Haiku',    openUrl: 'https://claude.ai/new' },
-  { value: 'gpt-4o',          label: 'GPT-4o',          openUrl: null },
-  { value: 'gpt-4o-mini',     label: 'GPT-4o mini',     openUrl: null },
-  { value: 'gemini-2.5-pro',  label: 'Gemini 2.5 Pro',  openUrl: null },
-  { value: 'deepseek-r1',     label: 'DeepSeek R1',     openUrl: null },
+  { value: 'claude-opus-4-8',   label: 'Claude Opus 4.8' },
+  { value: 'claude-sonnet-5',   label: 'Claude Sonnet 5' },
+  { value: 'claude-haiku-4-5',  label: 'Claude Haiku 4.5' },
+  { value: 'gpt-5-6-sol',       label: 'GPT-5.6 Sol' },
+  { value: 'gpt-5-6-terra',     label: 'GPT-5.6 Terra' },
+  { value: 'gpt-5-6-luna',      label: 'GPT-5.6 Luna' },
+  { value: 'gemini-3-5-flash',  label: 'Gemini 3.5 Flash' },
+  { value: 'gemini-3-1-pro',    label: 'Gemini 3.1 Pro' },
+  { value: 'deepseek-v4-pro',   label: 'DeepSeek V4 Pro' },
+  { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
 ];
 
 // ── Builder state helpers ─────────────────────────────────
@@ -155,8 +164,8 @@ function renderPromptBuilder() {
     `<option value="${o.value}">${o.label}</option>`).join('');
   const modelOpts = MODEL_OPTIONS.map(o =>
     `<option value="${o.value}">${o.label}</option>`).join('');
-  const tplChips = Object.keys(TEMPLATES).map(name =>
-    `<button class="tpl-chip" data-tpl="${name}">${name}</button>`).join('');
+  const tplChips = Object.entries(TEMPLATES).map(([key, tpl]) =>
+    `<button class="tpl-chip" data-tpl="${key}">${tpl.label}</button>`).join('');
 
   area.innerHTML = `
     <div id="prompt-builder">
@@ -254,7 +263,6 @@ function renderPromptBuilder() {
           </div>
           <div class="preview-actions">
             <button class="btn btn-primary" id="btn-copy">Copiar prompt</button>
-            <button class="btn" id="btn-open-claude" style="display:none">Abrir en Claude →</button>
             <button class="btn" id="btn-clear">Limpiar</button>
             <span class="copy-ok" id="copy-ok">✓ guardado</span>
           </div>
@@ -318,12 +326,6 @@ function initBuilderListeners() {
   document.getElementById('btn-copy').addEventListener('click', copyPrompt);
   document.getElementById('btn-clear').addEventListener('click', clearBuilder);
 
-  // "Abrir en Claude" button
-  const openClaudeBtn = document.getElementById('btn-open-claude');
-  if (openClaudeBtn) {
-    openClaudeBtn.addEventListener('click', openInClaude);
-  }
-
   // History chip actions (delegated on the stable form panel, not #builder-history
   // which gets replaced via outerHTML on every history update)
   const formPanel = document.getElementById('builder-panel-form');
@@ -358,14 +360,10 @@ function assemblePrompt() {
   const selfcheck    = getVal('b-selfcheck');
   const model        = getVal('b-model');
 
-  // Update model label and "Abrir en Claude" button visibility
-  const modelObj     = MODEL_OPTIONS.find(o => o.value === model);
-  const modelEl      = document.getElementById('preview-model');
-  const openClaudeBtn = document.getElementById('btn-open-claude');
+  // Update model label
+  const modelObj = MODEL_OPTIONS.find(o => o.value === model);
+  const modelEl  = document.getElementById('preview-model');
   if (modelEl) modelEl.textContent = modelObj ? modelObj.label : '';
-  if (openClaudeBtn) {
-    openClaudeBtn.style.display = (modelObj && modelObj.openUrl) ? '' : 'none';
-  }
 
   const parts = [];
   if (role)         parts.push(xmlTag('rol',          role));
@@ -419,13 +417,6 @@ function copyPrompt() {
   });
 }
 
-function openInClaude() {
-  const text = document.getElementById('prompt-preview').textContent;
-  if (!text || text.includes('aparecerá aquí')) return;
-  const url = `https://claude.ai/new?q=${encodeURIComponent(text)}`;
-  window.open(url, '_blank', 'noopener');
-}
-
 function clearBuilder() {
   ['b-role', 'b-context', 'b-task', 'b-restrictions', 'b-examples'].forEach(id => {
     const el = document.getElementById(id);
@@ -442,7 +433,7 @@ function clearBuilder() {
   if (typeof state !== 'undefined') {
     state.builder = {
       role: '', context: '', task: '', restrictions: '', examples: '',
-      format: '', tone: '', model: 'claude-sonnet-4', cot: false, selfcheck: false,
+      format: '', tone: '', model: 'claude-sonnet-5', cot: false, selfcheck: false,
     };
   }
   assemblePrompt();
@@ -484,7 +475,7 @@ function loadPromptFromHistory(id) {
       examples:     record.examples     || '',
       format:       record.format       || '',
       tone:         record.tone         || '',
-      model:        record.model        || 'claude-sonnet-4',
+      model:        record.model        || 'claude-sonnet-5',
       cot:          !!record.cot,
       selfcheck:    !!record.selfcheck,
     };

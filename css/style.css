@@ -1286,19 +1286,6 @@ body {
   .history-delete:hover { color: var(--text); background: var(--border); }
 }
 
-/* "Abrir en Claude" button in builder */
-#btn-open-claude {
-  border-color: #00c896;
-  color: #00c896;
-}
-@media (hover: hover) {
-  #btn-open-claude:hover {
-    background: #00c896;
-    color: #000;
-    border-color: #00c896;
-  }
-}
-
 /* ── ANIMATIONS ─────────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
