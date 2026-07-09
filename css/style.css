@@ -681,7 +681,7 @@ body {
   .mact-lab:hover { filter: brightness(1.08); transform: translateY(-1px); }
 }
 
-.mact-copy-ok {
+.mact-toast {
   position: absolute;
   top: 100%;
   right: 0;
@@ -700,7 +700,7 @@ body {
   pointer-events: none;
   white-space: nowrap;
 }
-.mact-copy-ok.show { opacity: 1; transform: translateY(0); }
+.mact-toast.show { opacity: 1; transform: translateY(0); }
 
 /* ── PAGINACIÓN: barra flotante abajo, ocupa todo el ancho con
    space-between — Anterior a la izquierda, contador al centro,

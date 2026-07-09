@@ -347,6 +347,27 @@ async function toggleBookmark(cardId) {
   return isNow;
 }
 
+// ── Compartir un artículo específico ───────────────────────
+// pushURLState() ya corrió al abrir el modal (openModalAtIndex), así que
+// location.href ya incluye ?card=<id> (y cat/lvl/q si están activos).
+async function shareCard(card) {
+  const url = location.href;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: card.title, text: card.summary, url });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return; // el usuario cerró el cuadro de compartir
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showModalToast('✓ enlace copiado'); // global in ui.js
+  } catch (err) {
+    // Portapapeles no disponible (contexto no seguro, permisos, etc.) — sin acción
+  }
+}
+
 // ── Prompt history ────────────────────────────────────────
 async function savePromptToHistory(promptText, builderState) {
   const src = builderState.task || builderState.role || builderState.context || '';

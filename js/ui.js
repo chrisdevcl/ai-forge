@@ -201,8 +201,8 @@ function openModal(card, index = -1, total = 0, isBookmarked = false) {
 
   // ── Acciones (flotante, arriba a la derecha) ───────────
   // El CTA de Prompt Lab va primero (más a la izquierda del grupo) porque
-  // es situacional; Guardar/Copiar/Cerrar son siempre los mismos y van
-  // después, en ese orden fijo.
+  // es situacional; Guardar/Compartir/Copiar/Cerrar son siempre los mismos
+  // y van después, en ese orden fijo.
   const labLabel = card.builderHint ? (card.builderHint.label || 'Usar en Prompt Lab') : '';
   actionsBar.innerHTML = `
     ${card.builderHint ? `
@@ -215,10 +215,13 @@ function openModal(card, index = -1, total = 0, isBookmarked = false) {
             aria-label="${isBookmarked ? 'Quitar de favoritos' : 'Guardar en favoritos'}">
       <span class="mact-icon">${isBookmarked ? '♥' : '♡'}</span>
     </button>
+    <button class="mact-btn mact-share" id="modal-share-btn" title="Compartir enlace directo" aria-label="Compartir enlace directo">
+      <span class="mact-icon">⤴</span>
+    </button>
     <button class="mact-btn mact-copy" id="modal-copy-btn" title="Copiar contenido" aria-label="Copiar contenido">
       <span class="mact-icon">⎘</span>
     </button>
-    <span class="mact-copy-ok" id="modal-copy-ok">✓ copiado</span>
+    <span class="mact-toast" id="modal-toast"></span>
     <button class="mact-btn mact-close" id="modal-close" title="Cerrar" aria-label="Cerrar">
       <span class="mact-icon">✕</span>
     </button>`;
@@ -227,6 +230,7 @@ function openModal(card, index = -1, total = 0, isBookmarked = false) {
   const prevBtn     = document.getElementById('modal-prev');
   const nextBtn     = document.getElementById('modal-next');
   const copyBtn     = document.getElementById('modal-copy-btn');
+  const shareBtn    = document.getElementById('modal-share-btn');
   const bookmarkBtn = document.getElementById('modal-bookmark-btn');
   const closeBtn    = document.getElementById('modal-close');
   const useLabBtn   = document.getElementById('modal-use-lab-btn');
@@ -236,11 +240,14 @@ function openModal(card, index = -1, total = 0, isBookmarked = false) {
 
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(card.detail || '').then(() => {
-        const ok = document.getElementById('modal-copy-ok');
-        if (ok) { ok.classList.add('show'); setTimeout(() => ok.classList.remove('show'), 2000); }
-      });
+      navigator.clipboard.writeText(card.detail || '')
+        .then(() => showModalToast('✓ copiado'))
+        .catch(() => {});
     });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => shareCard(card)); // global in app.js
   }
 
   if (bookmarkBtn) {
@@ -256,6 +263,16 @@ function openModal(card, index = -1, total = 0, isBookmarked = false) {
   }
 
   overlay.classList.remove('hidden');
+}
+
+// Toast breve junto al grupo de acciones flotante (copiar, compartir, etc.)
+function showModalToast(text) {
+  const toast = document.getElementById('modal-toast');
+  if (!toast) return;
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(showModalToast._t);
+  showModalToast._t = setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
 // ── Markdown renderer ─────────────────────────────────────
