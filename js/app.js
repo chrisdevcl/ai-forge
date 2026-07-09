@@ -355,7 +355,7 @@ async function shareCard(card) {
   const url = location.href;
   if (navigator.share) {
     try {
-      await navigator.share({ title: card.title, text: card.summary, url });
+      await navigator.share({ title: card.title, text: card.title, url });
       return;
     } catch (err) {
       if (err.name === 'AbortError') return; // el usuario cerró el cuadro de compartir
