@@ -687,9 +687,9 @@ Para prompts con múltiples secciones o datos complejos, XML es más efectivo qu
   3. 2 recomendaciones accionables
 </task>
 
-<data>
+<datos>
   {{DATOS_AQUÍ}}
-</data>
+</datos>
 
 <format>
   Headers Markdown. Sin bullets para el resumen.
@@ -1289,3 +1289,31 @@ Una variación del chain of thought estándar que investigadores han documentado
     tags: ['prompt-injection', 'seguridad', 'glosario'],
   },
 ];
+
+// ── Slugs para URLs compartibles ────────────────────────────
+// "?card=f4" no dice nada al abrirlo; "?card=alucinacion-..." sí.
+// El id interno (f4) sigue siendo la clave real en CARDS/storage — el
+// slug es solo la representación pública en la URL.
+const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
+
+function slugify(text) {
+  // Sin recortar: el slug debe leerse completo y coincidir con el título,
+  // para que quien reciba el link vea de qué trata antes de abrirlo.
+  return text
+    .normalize('NFD').replace(DIACRITICS_RE, '') // quita acentos (tildes, diéresis, etc.)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+const CARD_SLUGS = (() => {
+  const idToSlug = {};
+  const slugToId = {};
+  CARDS.forEach(card => {
+    let slug = slugify(card.title) || card.id;
+    if (slugToId[slug]) slug = `${slug}-${card.id}`; // desempate ante colisión
+    idToSlug[card.id] = slug;
+    slugToId[slug] = card.id;
+  });
+  return { idToSlug, slugToId };
+})();

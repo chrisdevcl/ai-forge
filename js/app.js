@@ -174,7 +174,7 @@ function pushURLState() {
   if (state.activeCategory !== 'all') params.set('cat', state.activeCategory);
   if (state.activeLevel !== 'all')    params.set('lvl', state.activeLevel);
   if (state.searchQuery)              params.set('q',   state.searchQuery);
-  if (state.openCardId)               params.set('card', state.openCardId);
+  if (state.openCardId)               params.set('card', CARD_SLUGS.idToSlug[state.openCardId] || state.openCardId);
   const qs = params.toString();
   history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
 }
@@ -193,7 +193,8 @@ function readURLState() {
     const el = document.getElementById('search');
     if (el) el.value = q;
   }
-  if (card) state.openCardId = card;
+  // El param puede ser un slug ("alucinacion-...") o, por compatibilidad, un id crudo ("f4")
+  if (card) state.openCardId = CARD_SLUGS.slugToId[card] || card;
 }
 
 // ── Utilities ─────────────────────────────────────────────
